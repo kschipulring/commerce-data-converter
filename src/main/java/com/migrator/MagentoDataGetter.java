@@ -9,30 +9,81 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
-//import org.json.JSONArray;
+import org.json.JSONArray;
 import org.json.JSONObject;
-
 
 abstract public class MagentoDataGetter {
 
-    protected final HttpClient httpClient = HttpClient.newBuilder()
-            .version(HttpClient.Version.HTTP_1_1)
-            .connectTimeout(Duration.ofSeconds(10))
-            .build();
+    protected int current_page = 1;
 
-    
+    //the contents from either the Magento API or the 'saved_files' local directory
+    protected String raw_response = null;
+
+    //save the raw JSON output from the Magento API?
+    public boolean save_file = false;
+
+    //instead load the raw JSON output from a local save file (when available)
+    public boolean load_file_if_exist = false;
+
+    //should be the same name as a Magento API section like "orders" or "customer/search"
+    public String api_section = "orders";
+
+    //which field should this be sorted by? Should be an existing field in the top level of the JSON return
+    public String sort_order_field = "increment_id";
+
+    //defaults, overriden with settings from the Config class via dotenv
     protected String mage_api_base_url = null;
     protected String mage_auth_token = null;
+    protected Integer mage_max_per_page = 10;
+
+    protected final HttpClient httpClient;
     
     public MagentoDataGetter( ) throws IOException
     {
 
+        //Config is singleton
         Config.getInstance();
+
+        httpClient = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
+            .connectTimeout( Duration.ofSeconds(Config.http_duration_wait) )
+            .build();
         
         this.mage_api_base_url = Config.mage_api_base_url;
         this.mage_auth_token = Config.mage_auth_token;
+
+        this.mage_max_per_page = Config.mage_max_per_page;
     }
 
+    protected void saveJsonFile(String file_contents){
+
+        //the file shall be named on when the first record was created. But a mere string is not good enough for s
+        JSONObject jsonObject = new JSONObject( file_contents );
+
+        //the items section is an array of the meaningful records
+        JSONArray jsonArray = jsonObject.getJSONArray("items");
+
+        //we want the timestamp from the first order from this batch
+        Object start_ts_obj = jsonArray.getJSONObject(0).get("created_at");
+
+        String start_ts = start_ts_obj.toString()
+                            .replace(' ', '_')
+                            .replace(':', '-');
+
+        //immediate subdirectory of 'saved_files'
+        String parent_dir = "json_src/orders/";
+
+        //file name to save to
+        String json_filename = parent_dir + "orders_pageSize-" + Config.mage_max_per_page;
+
+        json_filename += "_currentPage-" + this.current_page;
+        json_filename += "_" + start_ts + ".json";
+
+        //save the json file from the Magento API call contents
+        WriteToFile.write(json_filename, file_contents);
+    }
+
+    //just the raw request carried out. For actual parameters, method 'getJSONAPIContent' is used
     public String getRequest(String endpoint) throws IOException, InterruptedException
     {
 
@@ -55,9 +106,69 @@ abstract public class MagentoDataGetter {
         // print status code
         //System.out.println(response.statusCode());
 
-        // print response body
-        //System.out.println(response.body());
+        /*
+        save the JSON file in the saved_files directory if the class setting is 
+        on and there is not yet already a comparably named file in there.
+        */
+        if( this.save_file ){
+            this.saveJsonFile( response.body() );
+        }
        
         return response.body();
+    }
+
+    //builds the request GET URL, then uses it to call the above method
+    public String getJSONAPIContent(String api_section, String sort_order_field) throws IOException, InterruptedException
+    {
+        //Magento API section. Could be for any section, besides orders
+        String endpoint = api_section + "?searchCriteria[sortOrders][0][field]=";
+        endpoint += sort_order_field;
+        endpoint += "&searchCriteria[pageSize]=" + this.mage_max_per_page;
+        endpoint += "&searchCriteria[currentPage]=" + this.current_page;
+        endpoint += "&searchCriteria[sortOrders][0][direction]=ASC";
+
+        return this.getRequest(endpoint);
+    }
+
+    //could use either the local file JSON or the API endpoint in method above.
+    public String getJSONstring(String... args) throws IOException, InterruptedException
+    {
+
+        //if no specified current page, start with orders, defined above
+        String api_section = args.length > 0 ? args[0] : this.api_section;
+
+        //needed later.
+        this.api_section = api_section;
+
+        //default field to sort by...
+        String sort_order_field = args.length > 1 ? args[1] : this.sort_order_field;
+
+
+        //file name to check against to see if already existing
+        String json_filename = Config.json_save_subdir + "/" + this.api_section;
+        json_filename += "/" + this.api_section + "_pageSize-";
+        json_filename += this.mage_max_per_page + "_currentPage-" + this.current_page;
+
+        System.out.println( "json_filename = " + json_filename );
+
+        //is the downloaded JSON file in the saved directory?
+        String existing_name = DirScan.fileStartsWithFullName(json_filename);
+
+        //if so and if the class property 'load_file_if_exist' is true
+        if( this.load_file_if_exist && existing_name != null ){
+            this.raw_response = ReadFromFile.contents(existing_name);
+        }
+        
+        //if there is no pre-existing file or if loading JSON from file is not desired.
+        if( this.raw_response == null ){
+
+            /*
+            if not being loaded from a JSON file in the saved file directory, 
+            load it directly from Magento Orders API.
+            */
+            this.raw_response = this.getJSONAPIContent(api_section, sort_order_field);
+        }
+
+        return this.raw_response;
     }
 }
