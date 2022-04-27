@@ -7,8 +7,8 @@ public class DirScan
 {
 
     public static void main(String[] args){
-
-        System.out.println( fileStartsWithFullName("orders_") );
+        //testing only
+        System.out.println( fileStartsWithFullName("orders/orders_") );
     }
 
     /*
@@ -21,7 +21,7 @@ public class DirScan
         //start with the root folder of this Java app.
         String abs_path = new java.io.File("").getAbsolutePath();
         
-        File root = new File(abs_path + "/saved_files/");
+        File root = new File(abs_path + "/" + Config.base_save_dir + "/");
         FilenameFilter beginswithm = new FilenameFilter()
         {
             public boolean accept(File directory, String filename) {
