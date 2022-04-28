@@ -55,7 +55,8 @@ abstract public class MagentoDataGetter {
         this.mage_max_per_page = Config.mage_max_per_page;
     }
 
-    protected void saveJsonFile(String file_contents){
+    protected void saveJsonFile(String file_contents) throws IOException
+    {
 
         //the file shall be named on when the first record was created. But a mere string is not good enough for s
         JSONObject jsonObject = new JSONObject( file_contents );
@@ -71,7 +72,7 @@ abstract public class MagentoDataGetter {
                             .replace(':', '-');
 
         //immediate subdirectory of 'saved_files'
-        String parent_dir = "json_src/orders/";
+        String parent_dir = "json_src/" + this.api_section + "/";
 
         //file name to save to
         String json_filename = parent_dir + "orders_pageSize-" + Config.mage_max_per_page;
