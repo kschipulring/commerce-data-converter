@@ -72,7 +72,7 @@ abstract public class MagentoDataGetter {
                             .replace(':', '-');
 
         //immediate subdirectory of 'saved_files'
-        String parent_dir = "json_src/" + this.api_section + "/";
+        String parent_dir = Config.json_save_subdir + "/" + this.api_section + "/";
 
         //file name to save to
         String json_filename = parent_dir + "orders_pageSize-" + Config.mage_max_per_page;
@@ -127,6 +127,11 @@ abstract public class MagentoDataGetter {
         endpoint += "&searchCriteria[pageSize]=" + this.mage_max_per_page;
         endpoint += "&searchCriteria[currentPage]=" + this.current_page;
         endpoint += "&searchCriteria[sortOrders][0][direction]=ASC";
+
+        //don't want guests, as they have no customer_id
+        endpoint += "&searchCriteria[filter_groups][<index>][filters][<index>][field]=customer_is_guest";
+        endpoint += "&searchCriteria[filter_groups][<index>][filters][<index>][value]=0";
+        endpoint += "&searchCriteria[filter_groups][<index>][filters][<index>][condition_type]=eq";
 
         return this.getRequest(endpoint);
     }
