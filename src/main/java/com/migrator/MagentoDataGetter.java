@@ -1,5 +1,6 @@
 package com.migrator;
 
+import java.io.File;
 import java.io.IOException;
 //import java.net.Authenticator;
 import java.net.URI;
@@ -34,7 +35,7 @@ abstract public class MagentoDataGetter {
     //defaults, overriden with settings from the Config class via dotenv
     protected String mage_api_base_url = null;
     protected String mage_auth_token = null;
-    protected Integer mage_max_per_page = 10;
+    public Integer mage_max_per_page = 10;
 
     protected final HttpClient httpClient;
     
@@ -129,9 +130,9 @@ abstract public class MagentoDataGetter {
         endpoint += "&searchCriteria[sortOrders][0][direction]=ASC";
 
         //don't want guests, as they have no customer_id
-        endpoint += "&searchCriteria[filter_groups][<index>][filters][<index>][field]=customer_is_guest";
-        endpoint += "&searchCriteria[filter_groups][<index>][filters][<index>][value]=0";
-        endpoint += "&searchCriteria[filter_groups][<index>][filters][<index>][condition_type]=eq";
+        endpoint += "&searchCriteria[filter_groups][0][filters][0][field]=customer_is_guest";
+        endpoint += "&searchCriteria[filter_groups][0][filters][0][value]=0";
+        endpoint += "&searchCriteria[filter_groups][0][filters][0][condition_type]=eq";
 
         return this.getRequest(endpoint);
     }
@@ -151,6 +152,11 @@ abstract public class MagentoDataGetter {
 
 
         //file name to check against to see if already existing
+
+
+        String[] json_pathNames = { Config.base_save_dir, this.api_section, this.api_section };
+        String json_folder = String.join(File.separator, json_pathNames) + File.separator;
+
         String json_filename = Config.json_save_subdir + "/" + this.api_section;
         json_filename += "/" + this.api_section + "_pageSize-";
         json_filename += this.mage_max_per_page + "_currentPage-" + this.current_page;
