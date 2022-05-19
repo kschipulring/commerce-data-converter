@@ -9,7 +9,9 @@ public class MagentoOrderGetter extends MagentoDataGetter{
     protected JSONObject jsonObject = null;
     
     //constructor
-    public MagentoOrderGetter() throws IOException { }
+    public MagentoOrderGetter(Integer mage_max_per_page) throws IOException {
+        super( mage_max_per_page );
+    }
 
     public JSONObject getOrdersJson(int... cp) throws IOException, InterruptedException
     {
