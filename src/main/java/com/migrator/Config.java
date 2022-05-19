@@ -16,8 +16,9 @@ public class Config {
     public static String mage_api_base_url;
 
     /*
-    how many records per page? For the orders call, will be the number of orders
-    that could return. Ditto for customers, etc.
+    how many records maximum per page? For the orders call, will be the number 
+    of order records that could returned. Ditto for customers, etc.
+    CAN be overriden with command line parameter 'max_per_page'.
     */
     public static int mage_max_per_page;
 
