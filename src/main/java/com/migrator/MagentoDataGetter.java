@@ -26,6 +26,9 @@ abstract public class MagentoDataGetter {
     //instead load the raw JSON output from a local save file (when available)
     public boolean load_file_if_exist = false;
 
+    //which page of results should the operation start on?
+    public Integer page_start = 1;
+
     //should be the same name as a Magento API section like "orders" or "customer/search"
     public String api_section = "orders";
 
@@ -39,21 +42,26 @@ abstract public class MagentoDataGetter {
 
     protected final HttpClient httpClient;
     
-    public MagentoDataGetter( ) throws IOException
+    public MagentoDataGetter(Integer mage_max_per_page ) throws IOException
     {
 
         //Config is singleton
         Config.getInstance();
 
+        this.mage_api_base_url = Config.mage_api_base_url;
+        this.mage_auth_token = Config.mage_auth_token;
+
+        //forcibly override the maximum per page over the DOTEnv value, if above parameter is fed.
+        mage_max_per_page = mage_max_per_page != null ? mage_max_per_page : Config.mage_max_per_page;
+        this.mage_max_per_page = mage_max_per_page;
+
+        System.out.println( "mage_max_per_page" );
+        System.out.println( mage_max_per_page );
+
         httpClient = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout( Duration.ofSeconds(Config.http_duration_wait) )
             .build();
-        
-        this.mage_api_base_url = Config.mage_api_base_url;
-        this.mage_auth_token = Config.mage_auth_token;
-
-        this.mage_max_per_page = Config.mage_max_per_page;
     }
 
     protected void saveJsonFile(String file_contents) throws IOException
@@ -66,9 +74,7 @@ abstract public class MagentoDataGetter {
         JSONArray jsonArray = jsonObject.getJSONArray("items");
 
         //we want the timestamp from the first order from this batch
-        Object start_ts_obj = jsonArray.getJSONObject(0).get("created_at");
-
-        String start_ts = start_ts_obj.toString()
+        String start_ts = jsonArray.getJSONObject(0).getString("created_at")
                             .replace(' ', '_')
                             .replace(':', '-');
 
@@ -76,7 +82,7 @@ abstract public class MagentoDataGetter {
         String parent_dir = Config.json_save_subdir + "/" + this.api_section + "/";
 
         //file name to save to
-        String json_filename = parent_dir + "orders_pageSize-" + Config.mage_max_per_page;
+        String json_filename = parent_dir + "orders_pageSize-" + this.mage_max_per_page;
 
         json_filename += "_currentPage-" + this.current_page;
         json_filename += "_" + start_ts + ".json";
