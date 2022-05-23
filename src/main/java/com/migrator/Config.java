@@ -1,6 +1,7 @@
 package com.migrator;
 
 import java.io.IOException;
+import java.io.File;
 
 import io.github.cdimascio.dotenv.Dotenv;
 //import io.github.cdimascio.dotenv.DotenvException;
@@ -22,14 +23,36 @@ public class Config {
     */
     public static int mage_max_per_page;
 
-    //what is the parent directory for all saved files?
+    //base folder of app
+    public String abs_path = "";
+
+    //your company name
+    public static String company_name = "";
+
+    //what is the parent directory for all saved files? Probably child of above.
     public static String base_save_dir;
+
 
     //which child directory does the JSON from the Magento API get saved in?
     public static String json_save_subdir = "json_src";
 
+    //what is the full directory for the JSON files? (finalized a bit later)
+    public static String json_save_dir = "";
+
+
     //where do the XML files that will be sent to FTP be saved for now?
     public static String xml_save_subdir = "xml_dest";
+
+    //what is the full directory for the XML files?
+    public static String xml_save_dir = "";
+
+
+    //CONV-3. where do the CSV files that will be sent to FTP be saved for now?
+    public static String csv_save_subdir = "csv_dest";
+
+    //what is the full directory for the CSV files?
+    public static String csv_save_dir = "";
+
 
     public static int http_duration_wait;
 
@@ -41,6 +64,8 @@ public class Config {
         //Where is the .env file?
         //String env_dir = System.getProperty("user.dir");
         String env_dir = new java.io.File("").getAbsolutePath();
+
+        abs_path = env_dir;
         
         //load the .env file
         Dotenv dotenv = Dotenv.configure()
@@ -55,7 +80,24 @@ public class Config {
         //Magento REST API base URL
         mage_api_base_url = dotenv.get("MAGE_API_BASE_URL");
 
+        //master directory for all saved files
         base_save_dir = dotenv.get("BASE_SAVE_DIR", "saved_files");
+
+        /*
+        Full folder string for the base JSON save folder. Will have subdirectory
+        like 'orders' added on in actual saving/retrieving.
+        */
+        String[] json_folder_arr = { abs_path, base_save_dir, json_save_subdir };
+        json_save_dir = String.join(File.separator, json_folder_arr) + File.separator;
+
+        //full folder string for the base XML save folder.
+        String[] xml_folder_arr = { abs_path, base_save_dir, xml_save_subdir };
+        xml_save_dir = String.join(File.separator, xml_folder_arr) + File.separator;
+
+        //full folder string for the base CSV save folder.
+        String[] csv_folder_arr = { abs_path, base_save_dir, csv_save_subdir };
+        csv_save_dir = String.join(File.separator, csv_folder_arr) + File.separator;
+
 
         //how many results per page maximum?
         mage_max_per_page = Integer.parseInt( dotenv.get("MAGE_MAX_PER_PAGE", "10") );
