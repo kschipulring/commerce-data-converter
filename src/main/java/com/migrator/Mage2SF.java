@@ -11,25 +11,22 @@ import org.json.XML;
 
 public class Mage2SF extends JSONToXML {
 
+    public Mage2SF() throws IOException{
+        super( "orders" );
+    }
+
     public static void main(String...s) throws IOException{
 
-        //make sure the Config instance is loaded
-        Config.getInstance();
-
-        //which is the base folder of this app?
-        String abs_path = new java.io.File("").getAbsolutePath();
-
+        Mage2SF mage2SF = new Mage2SF();
         
-        String[] json_pathNames = { abs_path, Config.base_save_dir, Config.json_save_subdir, "orders" };
+        String[] json_pathNames = { mage2SF.abs_path, Config.base_save_dir, Config.json_save_subdir, mage2SF.section };
         String json_folder = String.join(File.separator, json_pathNames) + File.separator;
 
         System.out.println("json_folder = "+ json_folder);
 
         //String json_folder = abs_path + "/" + Config.base_save_dir + "/" + Config.json_save_subdir + "/orders/";
-        String xml_folder = Config.xml_save_subdir + "/orders/";
-
-        //String json_filename = json_folder + "tester.json";
-        //String json_filename = json_folder + "karls-mcstaging-order.json";
+        String[] xml_folder_arr = {Config.xml_save_subdir, mage2SF.section};
+        String xml_folder = String.join(File.separator, xml_folder_arr) + File.separator;
 
         String json_filename = json_folder + "sample_mcstaging_orders.json";
         
@@ -41,7 +38,7 @@ public class Mage2SF extends JSONToXML {
         JSONObject obj = new JSONObject(json_data);
 
         //the JSON form of the Salesforce data to export
-        JSONObject sfData = mage2SFObj(obj);
+        JSONObject sfData = mage2SF.mage2SFObj(obj);
 
         
         String xml_data = XML.toString(sfData);
@@ -66,7 +63,7 @@ public class Mage2SF extends JSONToXML {
         sf_order_customer.put("customer-no", customer_id );
 
         String customer_first_name = mage_order.has("customer_firstname") ? 
-                                mage_order.get("customer_firstname").toString() : "";
+            mage_order.get("customer_firstname").toString() : "";
         
         String customer_last_name = mage_order.has("customer_lastname") ? 
             mage_order.get("customer_lastname").toString() : "";
@@ -356,7 +353,7 @@ public class Mage2SF extends JSONToXML {
     The Magento data has a different schema than Salesforce, even in spite of 
     differing formats.  So it must first be converted to SF.
     */
-    public static JSONObject mage2SFObj( JSONObject obj ) throws IOException{
+    public JSONObject mage2SFObj( JSONObject obj ) throws IOException{
 
         //final output object
         JSONObject sfData = new JSONObject();
