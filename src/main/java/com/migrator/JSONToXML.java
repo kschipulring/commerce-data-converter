@@ -75,13 +75,46 @@ public class JSONToXML {
         /*WriteToFile.write(xml_filename, xml_data);*/
     }
 
+    public void prepareSFXMLFile(String timestamp, JSONObject jsonObject) throws IOException{
+
+        //which folder for the XML file?
+        String[] xml_folder_arr = { Config.xml_save_subdir, this.section };
+        String xml_folder = String.join(File.separator, xml_folder_arr) + File.separator;
+
+        System.out.println("xml_folder = "+ xml_folder);
+
+        String section_capped = this.section.substring(0,1).toUpperCase();
+        section_capped += section.substring(1).toLowerCase();
+        
+        //file name to save to
+        String xml_filename = xml_folder + section_capped + "_" + Config.company_name.replace(" ", "-") + "-US_";
+        xml_filename += timestamp.replace(" ", "_")
+                            .replace(":", "-");
+
+        xml_filename += ".xml";
+
+        System.out.println( "xml_filename = " + xml_filename );
+
+        //Orders_site-id_yyyy-MM-dd_HH-mm-ss.xml
+        saveXMLFile( xml_filename, jsonObject );
+    }
+
+    //write out the XML file, but before doing so, fix any closing tags with attributes
     public static void saveXMLFile( String xml_filename, JSONObject jsonObject ) throws IOException
     {
 
         //converting json to xml
         String xml_data = XML.toString(jsonObject);
-        System.out.println(xml_data);
 
-        //WriteToFile.write(xml_filename, xml_data);
+        //hack to get rid of unwanted attributes in the closing XML tags. Not detrimental when not applicable.
+        String pattern = "(?i)(<\\/([\\w-]+)(.*?)>)";
+        String xml_data_updated = xml_data.replaceAll(pattern, "</" + "$2" + ">");
+
+        //System.out.println(xml_data_updated);
+
+        System.out.println( "xml_filename" );
+        System.out.println( xml_filename );
+
+        WriteToFile.write(xml_filename, xml_data_updated);
     }
 }
