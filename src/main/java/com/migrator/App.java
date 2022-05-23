@@ -73,7 +73,7 @@ public class App
         mage_order_obj.put("items", mage_orders);
 
 
-        Mage2SF mage2SF = new Mage2SF();
+        Mage2SFOrders mage2SF = new Mage2SFOrders();
 
         JSONObject sf_data = mage2SF.mage2SFObj( mage_order_obj );
 

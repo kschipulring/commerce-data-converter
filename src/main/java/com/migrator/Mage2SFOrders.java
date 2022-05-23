@@ -9,15 +9,15 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.XML;
 
-public class Mage2SF extends JSONToXML {
+public class Mage2SFOrders extends JSONToXML {
 
-    public Mage2SF() throws IOException{
+    public Mage2SFOrders() throws IOException{
         super( "orders" );
     }
 
     public static void main(String...s) throws IOException{
 
-        Mage2SF mage2SF = new Mage2SF();
+        Mage2SFOrders mage2SF = new Mage2SFOrders();
         
         String[] json_folder_arr = { Config.json_save_dir, mage2SF.section };
         String json_folder = String.join(File.separator, json_folder_arr) + File.separator;
