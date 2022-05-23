@@ -2,11 +2,13 @@ package com.migrator;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 
 public class DirScan
 {
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws IOException
+    {
         //testing only
         System.out.println( fileStartsWithFullName("orders/orders_") );
     }
@@ -15,13 +17,16 @@ public class DirScan
     find out if a file starting with a certain pattern already exists.
     If so, return the full path name of the first match.
     */
-    public static String fileStartsWithFullName(String fname_starts_with)
+    public static String fileStartsWithFullName(String fname_starts_with) throws IOException
     {
+
+        Config.getInstance();
         
-        //start with the root folder of this Java app.
-        String abs_path = new java.io.File("").getAbsolutePath();
+        //start with the save folder of this Java app.
+        String[] file_root_arr = {Config.abs_path, Config.base_save_dir};
+        String file_root_str = String.join(File.separator, file_root_arr) + File.separator;
         
-        File root = new File(abs_path + "/" + Config.base_save_dir + "/");
+        File root = new File(file_root_str);
         FilenameFilter beginswithm = new FilenameFilter()
         {
             public boolean accept(File directory, String filename) {

@@ -19,8 +19,8 @@ public class Mage2SF extends JSONToXML {
 
         Mage2SF mage2SF = new Mage2SF();
         
-        String[] json_pathNames = { mage2SF.abs_path, Config.base_save_dir, Config.json_save_subdir, mage2SF.section };
-        String json_folder = String.join(File.separator, json_pathNames) + File.separator;
+        String[] json_folder_arr = { Config.json_save_dir, mage2SF.section };
+        String json_folder = String.join(File.separator, json_folder_arr) + File.separator;
 
         System.out.println("json_folder = "+ json_folder);
 

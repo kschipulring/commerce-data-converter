@@ -24,7 +24,7 @@ public class Config {
     public static int mage_max_per_page;
 
     //base folder of app
-    public String abs_path = "";
+    public static String abs_path = "";
 
     //your company name
     public static String company_name = "";
