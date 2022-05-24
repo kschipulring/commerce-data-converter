@@ -36,9 +36,9 @@ public class JSONToXML {
         String[] xml_folder_arr = { Config.xml_save_subdir, jsonToXML.section };
         String xml_folder = String.join(File.separator, xml_folder_arr) + File.separator;
 
-        String json_filename = json_folder + "tester.json";
+        String json_filename = json_folder + "test1.json";
         
-        String xml_filename = xml_folder + "tester.xml";
+        String xml_filename = xml_folder + "test1.xml";
 
         System.out.println(xml_filename);
 
