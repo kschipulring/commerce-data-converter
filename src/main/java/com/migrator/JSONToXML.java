@@ -47,21 +47,6 @@ public class JSONToXML {
         String json_data = ReadFromFile.contents( json_filename );
 
         JSONObject obj = new JSONObject(json_data);
-
-        
-
-        //mage2SFObj(obj);
-
-        /*
-        JSONObject sf_obj = new JSONObject( mage2SFObj(obj) );
-        
-        System.out.println( sf_obj );
-        
-        //converting json to xml
-        String xml_data = XML.toString(sf_obj);
-        System.out.println(xml_data);*/
-
-        /*WriteToFile.write(xml_filename, xml_data);*/
     }
 
     public void prepareSFXMLFile(String timestamp, JSONObject jsonObject) throws IOException{
