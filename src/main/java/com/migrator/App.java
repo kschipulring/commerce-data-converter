@@ -147,29 +147,22 @@ public class App
         JSONArray mage_orders = null;
 
         switch (mode) {
-            case "convertxml":
-                
-            
-            break;
             case "get":
-                mage_orders = getMageOrders( cl_props );
+                mage_orders = getMageOrders( cl_props, false );
+            break;
+            case "convertxml":
+                mage_orders = getMageOrders( cl_props, true );
 
+                saveSForders(mage_orders);
             break;
             case "getconvertxml":
-                mage_orders = getMageOrders( cl_props );
+                mage_orders = getMageOrders( cl_props, false );
 
                 saveSForders(mage_orders);
             default:
-                mage_orders = getMageOrders( cl_props );
-            
-                
+                mage_orders = getMageOrders( cl_props, false );
             break;
         }
-
-        System.out.println( "xyz = " + xyz );
-    
-
-        //saveSForders(mage_orders);
 
         /*for (String s: args) {
             System.out.println(s);
