@@ -4,6 +4,8 @@ import java.io.IOException;
 
 import java.util.HashMap;
 
+import javax.annotation.Nullable;
+
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -18,11 +20,16 @@ public class App
     gets Magento orders from the specified environment via REST, then saves them
      as .json files in specified destination.
     */
-    public static JSONArray getMageOrders( HashMap<String, String> props) throws IOException, InterruptedException
+    public static JSONArray getMageOrders(
+        @Nullable HashMap<String, String> props,
+        @Nullable Boolean load_file_if_exist
+    ) throws IOException, InterruptedException
     {
         
         // default value for the command line props, which is empty HashMap.
         props = props != null ? props : new HashMap<String, String>();
+
+        load_file_if_exist = load_file_if_exist != null ? load_file_if_exist : true;
 
         /*
         which page of results? Best off starting with '1' as it is the same as zero.
@@ -41,7 +48,7 @@ public class App
         mog.save_file = true;
 
         //rely on existing saved JSON files if available?
-        mog.load_file_if_exist = true;
+        mog.load_file_if_exist = load_file_if_exist;
 
         //which page of results to start off with?
         mog.current_page = page_start;
