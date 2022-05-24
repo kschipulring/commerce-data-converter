@@ -93,7 +93,8 @@ public class App
     get the command line parameters (assuming that there are any)
 
     The Format for the args. All parameters are optional and do not need to be in any order.
-    env:mcstaging,page_size:234,page_start:5,page_end:35,mode:get|getconvertxml|getconvertcsv|convertxml|convertcsv|sftpxml|sftpcsv
+    env:mcstaging,page_size:234,page_start:5,page_end:35,
+    mode:get|getconvertxml|getconvertcsv|convertxml|convertcsv|sftpxml|sftpcsv
 
     NOTE: parameter 'mode' value sample above is only one of the possibilites 
     seperated by the bar character.
@@ -132,14 +133,9 @@ public class App
 
         //mode=get|getconvertxml|getconvertcsv|convertxml|convertcsv|sftpxml|sftpcsv
         String mode = "";
-        String xyz =  null;
 
         System.out.println( cl_props );
 
-        if( cl_props.containsKey("mode") ){
-            System.out.println( cl_props.containsKey("mode")  );
-        }
-        
         if( cl_props.containsKey("mode") ){
             mode = cl_props.get("mode");
         }

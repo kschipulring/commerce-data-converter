@@ -17,15 +17,15 @@ public class Mage2SFOrders extends JSONToXML {
 
     public static void main(String...s) throws IOException{
 
-        Mage2SFOrders mage2SF = new Mage2SFOrders();
+        Mage2SFOrders mage2SFOrders = new Mage2SFOrders();
         
-        String[] json_folder_arr = { Config.json_save_dir, mage2SF.section };
+        String[] json_folder_arr = { Config.json_save_dir, mage2SFOrders.section };
         String json_folder = String.join(File.separator, json_folder_arr) + File.separator;
 
         System.out.println("json_folder = "+ json_folder);
 
         //String json_folder = abs_path + "/" + Config.base_save_dir + "/" + Config.json_save_subdir + "/orders/";
-        String[] xml_folder_arr = {Config.xml_save_subdir, mage2SF.section};
+        String[] xml_folder_arr = {Config.xml_save_subdir, mage2SFOrders.section};
         String xml_folder = String.join(File.separator, xml_folder_arr) + File.separator;
 
         String json_filename = json_folder + "sample_mcstaging_orders.json";
@@ -38,7 +38,7 @@ public class Mage2SFOrders extends JSONToXML {
         JSONObject obj = new JSONObject(json_data);
 
         //the JSON form of the Salesforce data to export
-        JSONObject sfData = mage2SF.mage2SFObj(obj);
+        JSONObject sfData = mage2SFOrders.mage2SFObj(obj);
 
         
         String xml_data = XML.toString(sfData);
