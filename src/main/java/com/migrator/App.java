@@ -61,12 +61,12 @@ public class App
 
         JSONArray jsonArray = orders_json.getJSONArray("items");
 
-        System.out.println( jsonArray.getJSONObject(0).get("created_at") );
+        //System.out.println( jsonArray.getJSONObject(0).get("created_at") );
 
         return jsonArray;
     }
 
-    public static void saveSForders(JSONArray mage_orders) throws IOException{
+    public static void saveSFOrders(JSONArray mage_orders) throws IOException{
 
         //System.out.println( mage_orders );
         String start_ts = mage_orders.getJSONObject(0).getString("created_at");
@@ -80,11 +80,11 @@ public class App
         mage_order_obj.put("items", mage_orders);
 
 
-        Mage2SFOrders mage2SF = new Mage2SFOrders();
+        Mage2SFOrders mage2SFOrders = new Mage2SFOrders();
 
-        JSONObject sf_data = mage2SF.mage2SFObj( mage_order_obj );
+        JSONObject sf_data = mage2SFOrders.mage2SFObjOrders( mage_order_obj );
 
-        mage2SF.prepareSFXMLFile(start_ts, sf_data);
+        mage2SFOrders.prepareSFXMLFile(start_ts, sf_data);
 /**/
         //System.out.println( sf_data );
     }

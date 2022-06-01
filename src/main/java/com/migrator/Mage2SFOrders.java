@@ -2,7 +2,7 @@ package com.migrator;
 
 import java.io.File;
 import java.io.IOException;
-
+import java.util.Arrays;
 import java.util.Iterator;
 
 import org.json.JSONArray;
@@ -38,7 +38,7 @@ public class Mage2SFOrders extends JSONToXML {
         JSONObject obj = new JSONObject(json_data);
 
         //the JSON form of the Salesforce data to export
-        JSONObject sfData = mage2SFOrders.mage2SFObj(obj);
+        JSONObject sfData = mage2SFOrders.mage2SFObjOrders(obj);
 
         
         String xml_data = XML.toString(sfData);
@@ -56,11 +56,14 @@ public class Mage2SFOrders extends JSONToXML {
         //customer sub object
         JSONObject sf_order_customer = new JSONObject();
 
+        JSONObjectArray soc_sorter = new JSONObjectArray();
+
         //customer id is not always there, like seemingly when it is a guest.
         String customer_id = mage_order.has("customer_id") ?
             mage_order.get("customer_id").toString() : "0";
 
-        sf_order_customer.put("customer-no", customer_id );
+        //sf_order_customer.put("customer-no", customer_id );
+        soc_sorter.put( new JSONObject().put("customer-no", customer_id ) );
 
         String customer_first_name = mage_order.has("customer_firstname") ? 
             mage_order.get("customer_firstname").toString() : "";
@@ -70,28 +73,32 @@ public class Mage2SFOrders extends JSONToXML {
         
         String customer_name = customer_first_name + " " + customer_last_name;
 
-        sf_order_customer.put("customer-name", customer_name );
-        sf_order_customer.put("customer-email", mage_order.get("customer_email") );
+        soc_sorter.put( "customer-name", customer_name )
+                .put( "customer-email", mage_order.get("customer_email") );
 
 
         /* ORDER -> CUSTOMER -> BILLING-ADDRESS SUB-SECTION */
-        JSONObject sf_order_customer_billingAddress = new JSONObject("{}");
+        JSONObject sf_order_customer_billingAddress = new JSONObject();
+        JSONObjectArray soc_ba_sorter = new JSONObjectArray();
 
-        sf_order_customer_billingAddress.put("first-name", customer_first_name );
-        sf_order_customer_billingAddress.put("last-name", customer_last_name );
+        soc_ba_sorter.put( "first-name", customer_first_name )
+                    .put( "last-name", customer_first_name );
 
         JSONObject temp_mage_ba = mage_order.getJSONObject("billing_address");
         JSONArray temp_mage_ba_street = temp_mage_ba.getJSONArray("street");
 
-        sf_order_customer_billingAddress.put("address1", temp_mage_ba_street.get(0) );
+        soc_ba_sorter.put( "address1", temp_mage_ba_street.opt(0) )
+                     .put( "city", temp_mage_ba.opt("city") )
+                     .put( "postal-code", temp_mage_ba.opt("postcode") )
+                     .put( "state-code", temp_mage_ba.opt("region_code") )
+                     .put( "country-code", temp_mage_ba.opt("country_id") )
+                     .put( "phone", temp_mage_ba.opt("telephone") );
 
-        sf_order_customer_billingAddress.put("city", temp_mage_ba.get("city") );
-        sf_order_customer_billingAddress.put("postal-code", temp_mage_ba.get("postcode") );
-        sf_order_customer_billingAddress.put("state-code", temp_mage_ba.get("region_code") );
-        sf_order_customer_billingAddress.put("country-code", temp_mage_ba.get("country_id") );
-        sf_order_customer_billingAddress.put("phone", temp_mage_ba.get("telephone") );
+        sf_order_customer_billingAddress.put("sorter", soc_ba_sorter );
 
-        sf_order_customer.put("billing-address", sf_order_customer_billingAddress);
+        soc_sorter.put( "billing-address", sf_order_customer_billingAddress );
+
+        sf_order_customer.put( "sorter", soc_sorter );
 
         /* END ORDER -> CUSTOMER -> BILLING-ADDRESS SUB-SECTION */
 
@@ -126,21 +133,25 @@ public class Mage2SFOrders extends JSONToXML {
 
             JSONObject sf_order_cart_item = new JSONObject();
 
-            sf_order_cart_item.put( "net-price", mage_order_cart_item.get("base_price") );
-            sf_order_cart_item.put( "tax", mage_order_cart_item.get("tax_amount") );
-            sf_order_cart_item.put( "gross-price", mage_order_cart_item.get("base_price_incl_tax") );
-            sf_order_cart_item.put( "base-price", mage_order_cart_item.get("base_price") );
-            sf_order_cart_item.put( "lineitem-text", mage_order_cart_item.get("name") );
-            sf_order_cart_item.put( "tax-basis", mage_order_cart_item.get("base_price") );
-            sf_order_cart_item.put( "position", j+1 );
-            sf_order_cart_item.put( "product-id", mage_order_cart_item.get("product_id") );
-            sf_order_cart_item.put( "product-name", mage_order_cart_item.get("name") );
-            sf_order_cart_item.put( "quantity", mage_order_cart_item.get("qty_ordered") );
+            JSONObjectArray sf_order_cart_item_sorter = new JSONObjectArray();
+
+            sf_order_cart_item_sorter.put( "net-price", mage_order_cart_item.get("base_price") )
+                      .put( "tax", mage_order_cart_item.get("tax_amount") )
+                      .put( "gross-price", mage_order_cart_item.get("base_price_incl_tax") )
+                      .put( "base-price", mage_order_cart_item.get("base_price") )
+                      .put( "lineitem-text", mage_order_cart_item.get("name") )
+                      .put( "tax-basis", mage_order_cart_item.get("base_price") )
+                      .put( "position", j+1 )
+                      .put( "product-id", mage_order_cart_item.get("product_id") )
+                      .put( "product-name", mage_order_cart_item.get("name") )
+                      .put( "quantity", mage_order_cart_item.get("qty_ordered") );
 
             double temp_tax_rate = mage_order_cart_item.getDouble("base_tax_amount") /
                                    mage_order_cart_item.getDouble("base_price");
 
-            sf_order_cart_item.put("tax-rate", temp_tax_rate);
+            sf_order_cart_item_sorter.put( "tax-rate", temp_tax_rate );
+
+            sf_order_cart_item.put("sorter", sf_order_cart_item_sorter);
 
             //add this cart item to the product line items array
             sf_order_cart_items.put(sf_order_cart_item );
@@ -164,22 +175,25 @@ public class Mage2SFOrders extends JSONToXML {
             JSONObject mage_shipping = mage_shipping_assignment.getJSONObject("shipping");
             JSONObject mage_shipping_total = mage_shipping.getJSONObject("total");
 
-            JSONObject first_product_item = mage_shipping_assignment.getJSONArray("items").getJSONObject(0);
+            JSONObject first_product_item = mage_shipping_assignment
+                                            .getJSONArray("items")
+                                            .getJSONObject(0);
 
-            String delivery_type = (String)first_product_item.getJSONObject("extension_attributes").get("delivery_type");
+            String delivery_type = first_product_item
+                                    .getJSONObject("extension_attributes")
+                                    .getString("delivery_type");
             
             JSONObject sf_shipping_line_item = new JSONObject();
 
+            JSONObjectArray ssli_sorter = new JSONObjectArray();
 
-            sf_shipping_line_item.put( "net-price", mage_shipping_total.get("base_shipping_incl_tax") );
-            sf_shipping_line_item.put( "tax", mage_shipping_total.get("shipping_tax_amount") );
-            sf_shipping_line_item.put( "gross-price", mage_shipping_total.get("shipping_amount") );
-            sf_shipping_line_item.put( "base-price", mage_shipping_total.get("base_shipping_amount") );
-
-            sf_shipping_line_item.put( "lineitem-text", delivery_type );
-
-            sf_shipping_line_item.put( "tax-basis", mage_shipping_total.get("base_shipping_tax_amount") );
-            sf_shipping_line_item.put( "item-id", mage_shipping.get("method") );
+            ssli_sorter.put( "net-price", mage_shipping_total.get("base_shipping_incl_tax") )
+                        .put( "tax", mage_shipping_total.get("shipping_tax_amount") )
+                        .put( "gross-price", mage_shipping_total.get("shipping_amount") )
+                        .put( "base-price", mage_shipping_total.get("base_shipping_amount") )
+                        .put( "lineitem-text", delivery_type )
+                        .put( "tax-basis", mage_shipping_total.get("base_shipping_tax_amount") )
+                        .put( "item-id", mage_shipping.get("method") );
 
             //sometimes this is zero. Since we all know that dividing by zero causes disasters, we do this...
             Double tax_rate = mage_shipping_total.getDouble("shipping_tax_amount") == 0 ?
@@ -187,7 +201,9 @@ public class Mage2SFOrders extends JSONToXML {
                 mage_shipping_total.getDouble("shipping_tax_amount") / 
                 mage_shipping_total.getDouble("shipping_amount");
 
-            sf_shipping_line_item.put( "tax-rate", tax_rate );
+            ssli_sorter.put( "tax-rate", tax_rate );
+
+            sf_shipping_line_item.put("sorter", ssli_sorter );
 
             //add the shipping line item to its array
             sf_order_shipping_items.put(sf_shipping_line_item );
@@ -203,22 +219,23 @@ public class Mage2SFOrders extends JSONToXML {
 
         JSONObject sf_order_shipments = new JSONObject();
 
+        JSONObjectArray sos_sorter = new JSONObjectArray();
+
         String order_status = mage_order.getString("status");
         String shipping_status_str = "{'shipping-status':'" + order_status + "'}}";
 
         JSONObject shipping_status = new JSONObject(shipping_status_str);
 
-        sf_order_shipments.put("status", shipping_status );
-        sf_order_shipments.put("shipping-method", mage_order.getString("shipping_description") );
+        sf_order_shipments.put("status", shipping_status )
+                        .put("shipping-method", mage_order.getString("shipping_description") );
 
         JSONObject mage_shipping_assignment = mage_order
                              .getJSONObject( "extension_attributes" )
                              .getJSONArray( "shipping_assignments" )
                              .getJSONObject(0);
 
-        sf_order_shipments.put("shipping-address", getShippingAddress(mage_shipping_assignment) );
-
-        sf_order_shipments.put("totals", getTotals(mage_order) );
+        sf_order_shipments.put("shipping-address", getShippingAddress(mage_shipping_assignment) )
+                          .put("totals", getTotals(mage_order) );
 
         return sf_order_shipments;
     }
@@ -227,45 +244,66 @@ public class Mage2SFOrders extends JSONToXML {
 
         JSONObject sf_shipping_address = new JSONObject();
 
+        JSONObjectArray ssa_sorter = new JSONObjectArray();
+
         JSONObject mage_shipping_address = mage_shipping_assignment
                                             .getJSONObject("shipping")
                                             .getJSONObject("address");
 
-        sf_shipping_address.put("first-name", mage_shipping_address.get("firstname"));
-        sf_shipping_address.put("last-name", mage_shipping_address.get("lastname"));
-        sf_shipping_address.put("address1", mage_shipping_address.getJSONArray("street").get(0) );
-        sf_shipping_address.put("city", mage_shipping_address.get("city"));
-        sf_shipping_address.put("postal-code", mage_shipping_address.get("postcode"));
-        sf_shipping_address.put("state-code", mage_shipping_address.get("region_code"));
-        sf_shipping_address.put("country-code", mage_shipping_address.get("country_id"));
-        sf_shipping_address.put("phone", mage_shipping_address.get("telephone"));
+        ssa_sorter.put("first-name", mage_shipping_address.get("firstname"))
+                  .put("last-name", mage_shipping_address.get("lastname"))
+                  .put("address1", mage_shipping_address.getJSONArray("street").get(0) )
+                  .put("city", mage_shipping_address.get("city"))
+                  .put("postal-code", mage_shipping_address.get("postcode"))
+                  .put("state-code", mage_shipping_address.get("region_code"))
+                  .put("country-code", mage_shipping_address.get("country_id"))
+                  .put("phone", mage_shipping_address.get("telephone"));
+
+        sf_shipping_address.put("sorter", ssa_sorter);
 
         return sf_shipping_address;
     }
 
     public static JSONObject getTotals(JSONObject mage_order){
 
+        JSONObjectArray sf_order_totals_sorter = new JSONObjectArray();
         JSONObject sf_order_totals = new JSONObject();
 
+        JSONObjectArray merchandizeTotal_sorter = new JSONObjectArray();
         JSONObject merchandizeTotal = new JSONObject();
+
+        JSONObjectArray shippingTotal_sorter = new JSONObjectArray();
         JSONObject shippingTotal = new JSONObject();
+
+        JSONObjectArray orderTotal_sorter = new JSONObjectArray();
         JSONObject orderTotal = new JSONObject();
 
-        merchandizeTotal.put("net-price", mage_order.get("base_subtotal") );
-        merchandizeTotal.put("tax", mage_order.get("base_tax_amount") );
-        merchandizeTotal.put("gross-price", mage_order.get("base_subtotal_incl_tax") );
+        merchandizeTotal_sorter.put("net-price", mage_order.opt("base_subtotal") )
+                            .put("tax", mage_order.opt("base_tax_amount") )
+                            .put("gross-price", mage_order.opt("base_subtotal_incl_tax") );
 
-        shippingTotal.put("net-price", mage_order.get("base_shipping_amount") );
-        shippingTotal.put("tax", mage_order.get("base_shipping_tax_amount") );
-        shippingTotal.put("gross-price", mage_order.get("base_shipping_incl_tax") );
+        merchandizeTotal.put("sorter", merchandizeTotal_sorter);
+        
+        
+        shippingTotal_sorter.put("net-price", mage_order.opt("base_shipping_amount") )
+                            .put("tax", mage_order.opt("base_shipping_tax_amount") )
+                            .put("gross-price", mage_order.opt("base_shipping_incl_tax") );
 
-        orderTotal.put("net-price", mage_order.get("subtotal") );
-        orderTotal.put("tax", mage_order.get("tax_amount") );
-        orderTotal.put("gross-price", mage_order.get("total_due") );
+        shippingTotal.put("sorter", shippingTotal_sorter);
 
-        sf_order_totals.put( "merchandize-total", merchandizeTotal);
-        sf_order_totals.put( "shipping-total", shippingTotal);
-        sf_order_totals.put( "order-total", orderTotal);
+
+        orderTotal_sorter.put("net-price", mage_order.opt("subtotal") )
+                        .put("tax", mage_order.opt("tax_amount") )
+                        .put("gross-price", mage_order.opt("total_due") );
+
+        orderTotal.put("sorter", orderTotal_sorter);
+
+        sf_order_totals_sorter.put( "merchandize-total", merchandizeTotal)
+                        .put( "shipping-total", shippingTotal)
+                        .put( "order-total", orderTotal);
+
+        sf_order_totals.put("sorter", sf_order_totals_sorter);
+
 
         return sf_order_totals;
     }
@@ -273,8 +311,8 @@ public class Mage2SFOrders extends JSONToXML {
     public static JSONObject getPayments(JSONObject mage_order){
 
         JSONArray payment_additional_info = mage_order
-        .getJSONObject("extension_attributes")
-        .getJSONArray("payment_additional_info");
+                                    .getJSONObject("extension_attributes")
+                                    .getJSONArray("payment_additional_info");
 
         JSONObject mage_payment = mage_order.getJSONObject("payment");
 
@@ -319,8 +357,10 @@ public class Mage2SFOrders extends JSONToXML {
             }
         }
 
+        JSONObjectArray sf_payments_sorter = new JSONObjectArray();
         JSONObject sf_payments = new JSONObject();
 
+        JSONObjectArray credit_card_sorter = new JSONObjectArray();
         JSONObject credit_card = new JSONObject();
 
         //the credit card number can actually come from more than one possible place in the source data.
@@ -333,18 +373,24 @@ public class Mage2SFOrders extends JSONToXML {
             final_card_number = "XXXX-XXXX-XXXX-" + final_card_number;
         }
 
-        credit_card.put("card-type", card_type);
-        credit_card.put("card-number", final_card_number);
-        credit_card.put("card-holder", card_holder);
-        credit_card.put("expiration-month", mage_payment.opt("cc_exp_month") );
-        credit_card.put("expiration-year", mage_payment.opt("cc_exp_year") );
+        credit_card_sorter.put("card-type", card_type)
+                .put("card-number", final_card_number)
+                .put("card-holder", card_holder)
+                .put("expiration-month", mage_payment.opt("cc_exp_month") )
+                .put("expiration-year", mage_payment.opt("cc_exp_year") );
 
-        sf_payments.put("credit-card", credit_card );
-        sf_payments.put("amount", mage_payment.get("amount_ordered") );
-        sf_payments.put("processor-id", mage_payment.get("method") );
 
-        JSONObject payments = new JSONObject();
-        payments.put("payment", sf_payments);
+        credit_card.put("sorter", credit_card_sorter);
+
+        sf_payments_sorter.put("credit-card", credit_card )
+                    .put("amount", mage_payment.opt("amount_ordered") )
+                    .put("processor-id", mage_payment.opt("method") )
+                    .put("transaction-id", mage_payment.opt("cc_trans_id") );
+
+        
+        sf_payments.put("sorter", sf_payments_sorter);
+
+        JSONObject payments = new JSONObject().put("payment", sf_payments);
 
         return payments;
     }
@@ -353,12 +399,12 @@ public class Mage2SFOrders extends JSONToXML {
     The Magento data has a different schema than Salesforce, even in spite of 
     differing formats.  So it must first be converted to SF.
     */
-    public JSONObject mage2SFObj( JSONObject obj ) throws IOException{
-
+    public JSONObject mage2SFObjOrders( JSONObject obj ) throws IOException{
+        
         //final output object
         JSONObject sfData = new JSONObject();
 
-        //an array where each immediate child element is an 'order' element
+        //an array where each immediate child element is an 'order' element. final output object.
         JSONObject sfData_orders = new JSONObject();
 
         //each "item" represents an order, not a SF 'product line item' or magento 'quote' item
@@ -372,6 +418,8 @@ public class Mage2SFOrders extends JSONToXML {
 
             JSONObject sf_order = new JSONObject();
 
+            JSONObjectArray sorter = new JSONObjectArray();
+
             //get the creation date of the first order, then retain for later
             if(i == 0){
                 first_order_created_at = mage_order.getString("created_at");
@@ -380,30 +428,52 @@ public class Mage2SFOrders extends JSONToXML {
                 first_order_created_at = first_order_created_at.replace(" ", "_");
             }
 
-            sf_order.put("order-date", mage_order.get("created_at") );
-            sf_order.put("original-order-no", mage_order.get("entity_id") );
-            sf_order.put("currency", mage_order.get("base_currency_code") );
-            sf_order.put("invoice-no", mage_order.get("increment_id") );
-            sf_order.put("current-order-no", mage_order.get("entity_id") );
+            sorter.put( "order-date", mage_order.get("created_at") )
+                .put( "created-by", "storefront" )
+                .put( "original-order-no", mage_order.get("entity_id") )
+                .put( "currency", mage_order.get("base_currency_code") )
+                .put( "customer-locale", "default" )
+                .put( "taxation", "net" )
+                .put( "invoice-no", mage_order.get("increment_id") );
 
             //customer sub-section of the order
             JSONObject sf_order_customer = getSFCustomer( mage_order );
-            sf_order.put("customer", sf_order_customer );
+            sorter.put( "customer", sf_order_customer );
 
-
+ 
             /* status sub-section of the order */
             JSONObject sf_order_status = new JSONObject();
-            sf_order_status.put("order-status", mage_order.get("status") );
+            JSONObjectArray sf_order_status_sorter = new JSONObjectArray();
 
-            sf_order.put("status", sf_order_status );
+            sf_order_status_sorter.put( "order-status", mage_order.get("status") );
 
+
+            String[] complete_arr = { "complete", "pending", "sent_to_fulfillment" };
+
+            Object cs_val = null;
+
+            if( Arrays.asList(complete_arr).contains( mage_order.getString("status") ) ){ 
+                cs_val = "CONFIRMED";
+            }else{
+                cs_val = mage_order.getString("status");
+            }
+
+            sf_order_status_sorter.put("confirmation-status", cs_val )
+                                .put( "export-status", "EXPORTED" );
+
+            sf_order_status.put( "sorter", sf_order_status_sorter );
+
+            sorter.put( "status", sf_order_status );
+            /* end status sub-section of the order */
+
+            sorter.put( "current-order-no", mage_order.get("entity_id") );
 
             /* ORDER -> PRODUCT LINE ITEMS SUB-SECTION */
             JSONArray mage_order_cart_items = mage_order.getJSONArray("items");
 
             JSONObject sf_order_productLineItems = getSFProductLineItems( mage_order_cart_items );
 
-            sf_order.put("product-lineitems", sf_order_productLineItems );
+            sorter.put( "product-lineitems", sf_order_productLineItems );
             /* END ORDER -> PRODUCT LINE ITEMS SUB-SECTION */
 
             /* ORDER -> SHIPPING LINE ITEMS SUB-SECTION */
@@ -415,16 +485,17 @@ public class Mage2SFOrders extends JSONToXML {
 
             JSONObject sf_order_shippingLineItems = getSFShippingLineItems(sa);
 
-            sf_order.put("shipping-lineitems", sf_order_shippingLineItems );
+            sorter.put( "shipping-lineitems", sf_order_shippingLineItems );
             /* END ORDER -> SHIPPING LINE ITEMS SUB-SECTION */
 
 
             JSONObject sf_shipments = getShipments(mage_order);
-            sf_order.put("shipments", sf_shipments );
+            sorter.put( "shipments", sf_shipments )
+                    .put( "totals", getTotals(mage_order) )
+                    .put( "payments", getPayments(mage_order) );
 
-            sf_order.put("totals", getTotals(mage_order) );
 
-            sf_order.put("payments", getPayments(mage_order) );
+            sf_order.put( "sorter", sorter );
 
             //attach the order to its array
             sfData_orders.put( "order order-no=\"" + mage_order.get("entity_id") + "\"", sf_order );
@@ -436,4 +507,5 @@ public class Mage2SFOrders extends JSONToXML {
 
         return sfData;
     }
+
 }
