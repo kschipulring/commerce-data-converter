@@ -49,6 +49,52 @@ public class Mage2SFOrders extends JSONToXML {
 
         System.out.println(xml_data_updated);
     }
+
+    public static JSONObject getCustomerName( JSONObject mage_order ){
+
+        JSONObject customer_name = new JSONObject();
+
+        String customer_firstname = "";
+        String customer_lastname = "";
+
+        JSONObject mage_shipping_assignment = null;
+
+        //first, go for the default customer name set
+        if( mage_order.has("customer_firstname") ){
+            customer_firstname = mage_order.getString("customer_firstname");
+        }
+
+        if( mage_order.has("customer_lastname") ){
+            customer_lastname = mage_order.getString("customer_lastname");
+        }
+
+        //if these attempts fail, then try the customer names from shipping
+        if( customer_firstname == "" || customer_lastname == "" ){
+            mage_shipping_assignment = mage_order
+                .getJSONObject( "extension_attributes" )
+                .getJSONArray( "shipping_assignments" )
+                .getJSONObject(0)
+                .getJSONObject( "shipping" )
+                .getJSONObject( "address" );
+
+            
+            System.out.println( "mage_shipping_assignment = " );
+            System.out.println( mage_shipping_assignment );
+
+            if( customer_firstname == "" ){
+                customer_firstname = mage_shipping_assignment.optString("firstname");
+            }
+
+            if( customer_lastname == "" ){
+                customer_lastname = mage_shipping_assignment.optString("lastname");
+            }
+        }
+        
+        customer_name.put("firstname", customer_firstname)
+                    .put("lastname", customer_lastname);
+
+        return customer_name;
+    }
     
     //populates order -> 'customer' tag for SF order
     public static JSONObject getSFCustomer( JSONObject mage_order ){
@@ -65,11 +111,10 @@ public class Mage2SFOrders extends JSONToXML {
         //sf_order_customer.put("customer-no", customer_id );
         soc_sorter.put( new JSONObject().put("customer-no", customer_id ) );
 
-        String customer_first_name = mage_order.has("customer_firstname") ? 
-            mage_order.get("customer_firstname").toString() : "";
-        
-        String customer_last_name = mage_order.has("customer_lastname") ? 
-            mage_order.get("customer_lastname").toString() : "";
+        JSONObject customer_name_obj = getCustomerName( mage_order );
+
+        String customer_first_name = customer_name_obj.getString("firstname");
+        String customer_last_name = customer_name_obj.getString("lastname");
         
         String customer_name = customer_first_name + " " + customer_last_name;
 
@@ -82,7 +127,7 @@ public class Mage2SFOrders extends JSONToXML {
         JSONObjectArray soc_ba_sorter = new JSONObjectArray();
 
         soc_ba_sorter.put( "first-name", customer_first_name )
-                    .put( "last-name", customer_first_name );
+                    .put( "last-name", customer_last_name );
 
         JSONObject temp_mage_ba = mage_order.getJSONObject("billing_address");
         JSONArray temp_mage_ba_street = temp_mage_ba.getJSONArray("street");
@@ -246,7 +291,7 @@ public class Mage2SFOrders extends JSONToXML {
                              .getJSONObject(0);
 
         sos_sorter.put("shipping-address", getShippingAddress(mage_shipping_assignment) )
-                          .put("totals", getTotals(mage_order) );
+                    .put("totals", getTotals(mage_order) );
 
           
         sf_order_shipments.put("sorter", sos_sorter).put("shipment-id", shipment_id);
