@@ -25,12 +25,12 @@ public class Mage2SFOrders extends JSONToXML {
         System.out.println("json_folder = "+ json_folder);
 
         //String json_folder = abs_path + "/" + Config.base_save_dir + "/" + Config.json_save_subdir + "/orders/";
-        String[] xml_folder_arr = {Config.xml_save_subdir, mage2SFOrders.section};
-        String xml_folder = String.join(File.separator, xml_folder_arr) + File.separator;
+        //String[] xml_folder_arr = {Config.xml_save_subdir, mage2SFOrders.section};
+        //String xml_folder = String.join(File.separator, xml_folder_arr) + File.separator;
 
         String json_filename = json_folder + "sample_mcstaging_orders.json";
         
-        String xml_filename = xml_folder + "sample_mcstaging_orders.xml";
+        //String xml_filename = xml_folder + "sample_mcstaging_orders.xml";
 
         //get the data from the saved .json file of Magento orders.
         String json_data = ReadFromFile.contents( json_filename );
