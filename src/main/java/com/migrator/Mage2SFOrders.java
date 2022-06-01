@@ -226,16 +226,30 @@ public class Mage2SFOrders extends JSONToXML {
 
         JSONObject shipping_status = new JSONObject(shipping_status_str);
 
-        sf_order_shipments.put("status", shipping_status )
-                        .put("shipping-method", mage_order.getString("shipping_description") );
+        String shipping_description = mage_order.getString("shipping_description");
+
+        sos_sorter.put("status", shipping_status )
+                .put("shipping-method", shipping_description );
+
+        
+        String shipment_id = null;
+
+        if( shipping_description.contains("Delivery") ){
+            shipment_id = "00000001";
+        }else{
+            shipment_id = "00000002";
+        }
 
         JSONObject mage_shipping_assignment = mage_order
                              .getJSONObject( "extension_attributes" )
                              .getJSONArray( "shipping_assignments" )
                              .getJSONObject(0);
 
-        sf_order_shipments.put("shipping-address", getShippingAddress(mage_shipping_assignment) )
+        sos_sorter.put("shipping-address", getShippingAddress(mage_shipping_assignment) )
                           .put("totals", getTotals(mage_order) );
+
+          
+        sf_order_shipments.put("sorter", sos_sorter).put("shipment-id", shipment_id);
 
         return sf_order_shipments;
     }
@@ -511,8 +525,17 @@ public class Mage2SFOrders extends JSONToXML {
             sorter.put( "shipping-lineitems", sf_order_shippingLineItems );
             /* END ORDER -> SHIPPING LINE ITEMS SUB-SECTION */
 
+            JSONObject mage_shipments = getShipments(mage_order);
 
-            JSONObject sf_shipments = getShipments(mage_order);
+            String shipment_id = mage_shipments.getString( "shipment-id" );
+
+            //now remove the shipment-id property as it is no longer needed or wanted for the overall xml
+            mage_shipments.remove("shipment-id");
+
+            //hack needed for XML attributes, as I did not use a fancy XML library like Jackson
+            String shipment_keyval = "shipment shipment-id=\""+ shipment_id +"\"";
+
+            JSONObject sf_shipments = new JSONObject().put(shipment_keyval, mage_shipments);
             sorter.put( "shipments", sf_shipments )
                     .put( "totals", getTotals(mage_order) )
                     .put( "payments", getPayments(mage_order) );
