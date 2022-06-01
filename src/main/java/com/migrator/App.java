@@ -149,12 +149,12 @@ public class App
             case "convertxml":
                 mage_orders = getMageOrders( cl_props, true );
 
-                saveSForders(mage_orders);
+                saveSFOrders(mage_orders);
             break;
             case "getconvertxml":
                 mage_orders = getMageOrders( cl_props, false );
 
-                saveSForders(mage_orders);
+                saveSFOrders(mage_orders);
             default:
                 mage_orders = getMageOrders( cl_props, false );
             break;

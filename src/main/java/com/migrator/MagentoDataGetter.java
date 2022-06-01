@@ -161,13 +161,17 @@ abstract public class MagentoDataGetter {
         String[] json_folder_arr = { Config.json_save_subdir, this.api_section };
         String json_folder = String.join(File.separator, json_folder_arr) + File.separator;
 
-        String json_filename = json_folder + this.api_section + "_pageSize-";
-        json_filename += this.mage_max_per_page + "_currentPage-" + this.current_page;
+        String base_json_filename = this.api_section + "_pageSize-";
+        base_json_filename += this.mage_max_per_page + "_currentPage-" + this.current_page + "_";
 
-        System.out.println( "json_filename = " + json_filename );
+        String json_filename = json_folder + base_json_filename;
 
         //is the downloaded JSON file in the saved directory?
         String existing_name = DirScan.fileStartsWithFullName(json_filename);
+
+
+        System.out.println( "MagentoDataGetter, this.load_file_if_exist = " + this.load_file_if_exist );
+        System.out.println( "existing_name = " + existing_name );
 
         //if so and if the class property 'load_file_if_exist' is true
         if( this.load_file_if_exist && existing_name != null ){
