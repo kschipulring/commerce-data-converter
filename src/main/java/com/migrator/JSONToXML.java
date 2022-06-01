@@ -82,12 +82,13 @@ public class JSONToXML {
 
         //hack to get rid of unwanted attributes in the closing XML tags. Not detrimental when not applicable.
         String pattern = "(?i)(<\\/([\\w-]+)(.*?)>)";
-        String xml_data_updated = xml_data.replaceAll(pattern, "</" + "$2" + ">");
+        String xml_data_updated = xml_data
+                                    .replaceAll(pattern, "</" + "$2" + ">")
+                                    .replaceAll("(?i)(<\\/?sorter>)", "");
 
         //System.out.println(xml_data_updated);
 
-        System.out.println( "xml_filename" );
-        System.out.println( xml_filename );
+        System.out.println( "xml_filename = " + xml_filename );
 
         WriteToFile.write(xml_filename, xml_data_updated);
     }
