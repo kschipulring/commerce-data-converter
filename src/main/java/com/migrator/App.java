@@ -112,8 +112,8 @@ public class App
         //only process if there are actual command line parameters
         if(line != null && line.length() > 3 ) {
 
-            //split the key/value pairs by either commas or ampersands
-            String str[] = line.split(",|&");
+            //split the key/value pairs by commas
+            String str[] = line.split(",");
 
             for(int i=0; i<str.length; i++){
                 String arr[] = str[i].split(":|=");
