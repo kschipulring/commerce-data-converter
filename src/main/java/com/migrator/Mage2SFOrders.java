@@ -316,7 +316,7 @@ public class Mage2SFOrders extends JSONToXML {
 
         JSONObject mage_payment = mage_order.getJSONObject("payment");
 
-        String card_type = "";
+        String card_type = null;
         String card_number = "";
 
         String card_holder = mage_order
@@ -336,7 +336,30 @@ public class Mage2SFOrders extends JSONToXML {
             String v = ix.getString("value");
 
             //get the payment method type
-            if( k.contains( "method_title" ) ){
+            if( k.contains( "score_card_scheme" ) ){
+                card_type = v;
+            }
+
+            //failsafe 1
+            if( card_type == null && k.contains( "afsReply_cardScheme" ) ){
+                card_type = v;
+            }
+
+            //failsafe 2
+            if( card_type == null && k.contains( "score_card_account_type" ) ){
+                card_type = v;
+            }
+
+            //failsafe 3
+            if( card_type == null && k.contains( "afsReply_cardAccountType" ) ){
+                card_type = v;
+            }
+
+            /*
+            failsafe 4. Probably best for when customer used check / money 
+            order or something that is not standard credit card.
+            */
+            if( card_type == null && k.contains( "method_title" ) ){
                 card_type = v;
             }
 
