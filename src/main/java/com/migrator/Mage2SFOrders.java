@@ -510,7 +510,10 @@ public class Mage2SFOrders extends JSONToXML {
                 first_order_created_at = first_order_created_at.replace(" ", "_");
             }
 
-            sorter.put( "order-date", mage_order.get("created_at") )
+            sorter.put( "order-date", mage_order
+                                            .getString("created_at")
+                                            .replace(" ", "T") + "Z"
+                )
                 .put( "created-by", "storefront" )
                 .put( "original-order-no", mage_order.get("entity_id") )
                 .put( "currency", mage_order.get("base_currency_code") )
