@@ -4,18 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.text.ParseException;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.text.SimpleDateFormat;  
-import java.util.Date;
-import java.text.DateFormat;
-import java.text.ParseException;
 
 
 public class Mage2DeckOrdersCSV extends JSONToCSV {
@@ -54,14 +49,6 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
             System.out.println( d + " " + d.value  + " = " + mdmo.get(0).get(d) );
         }
 
-    }
-
-    public String mage2DeckDateTime(String mage_date_str) throws ParseException{
-
-        Date mage_date = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(mage_date_str);
-        DateFormat deckDateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm");
-  
-        return deckDateFormat.format(mage_date);
     }
 
     public List<Map<DeckOrderHeaders, Object>> mage2DeckMapOrders( JSONObject mage_orders_items ) throws ParseException

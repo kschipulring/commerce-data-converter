@@ -1,6 +1,10 @@
 package com.migrator;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.io.File;
 
 import javax.annotation.*;
@@ -20,6 +24,14 @@ public class JSONToCSV {
         
         //make sure the Config instance is loaded
         Config.getInstance();
+    }
+    
+    public String mage2DeckDateTime(String mage_date_str) throws ParseException{
+
+        Date mage_date = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(mage_date_str);
+        DateFormat deckDateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm");
+  
+        return deckDateFormat.format(mage_date);
     }
 
     public void prepareDeckCSVFile() throws IOException{
