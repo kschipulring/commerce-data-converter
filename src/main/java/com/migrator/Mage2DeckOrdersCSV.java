@@ -2,16 +2,14 @@ package com.migrator;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-import java.text.ParseException;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
-
 
 public class Mage2DeckOrdersCSV extends JSONToCSV {
 
