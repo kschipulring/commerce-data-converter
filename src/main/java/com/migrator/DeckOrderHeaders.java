@@ -1,6 +1,6 @@
 package com.migrator;
 
-public enum DeckOrderHeaders {
+public enum DeckOrderHeaders implements CSVHeaderInterface{
     ORDERNUMBER("OrderNumber"),
     SITECODE("SiteCode"),
     CUSTOMERID("CustomerID"),
@@ -59,4 +59,7 @@ public enum DeckOrderHeaders {
         this.value = label;
     }
 
+    public String value() {
+        return value;
+    }
 }
