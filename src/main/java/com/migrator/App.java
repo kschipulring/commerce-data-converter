@@ -66,9 +66,10 @@ public class App
         return jsonArray;
     }
 
-    public static void saveSFOrders(JSONArray mage_orders) throws IOException{
+    public static void saveSFOrders(JSONArray mage_orders) throws IOException
+    {
 
-        //System.out.println( mage_orders );
+        //get the first order timestamp. Shall be used in part of the file name.
         String start_ts = mage_orders.getJSONObject(0).getString("created_at");
 
         JSONObject mage_order_obj = new JSONObject();
@@ -79,14 +80,22 @@ public class App
 
         mage_order_obj.put("items", mage_orders);
 
-
+        //to convert the Magento orders to Salesforce storefront orders
         Mage2SFOrders mage2SFOrders = new Mage2SFOrders();
-
         JSONObject sf_data = mage2SFOrders.mage2SFObjOrders( mage_order_obj );
 
         mage2SFOrders.prepareSFXMLFile(start_ts, sf_data);
 /**/
         //System.out.println( sf_data );
+    }
+
+    public static void saveDeckOrders(JSONArray mage_orders) throws IOException 
+    {
+        //get the first order timestamp.
+        String start_ts = mage_orders.getJSONObject(0).getString("created_at");
+
+        //convert the Magento orders to Deck Commerce Orders
+        
     }
 
     /*
@@ -131,7 +140,7 @@ public class App
         // get the command line parameters (assuming that there are any)
         HashMap<String, String> cl_props = getParams( args );
 
-        //mode=get|getconvertxml|getconvertcsv|convertxml|convertcsv|sftpxml|sftpcsv
+        //mode=get|getconvertxml|convertxml|getconvertcsv|convertcsv|sftpxml|sftpcsv
         String mode = "";
 
         System.out.println( cl_props );
@@ -155,6 +164,17 @@ public class App
                 mage_orders = getMageOrders( cl_props, false );
 
                 saveSFOrders(mage_orders);
+            break;
+            case "convertcsv":
+                mage_orders = getMageOrders( cl_props, true );
+
+                saveSFOrders(mage_orders);
+            break;
+            case "getconvertcsv":
+                mage_orders = getMageOrders( cl_props, false );
+
+                saveSFOrders(mage_orders);
+            break;
             default:
                 mage_orders = getMageOrders( cl_props, false );
             break;
