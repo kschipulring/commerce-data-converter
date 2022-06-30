@@ -53,6 +53,7 @@ public class Config {
     //what is the full directory for the CSV files?
     public static String csv_save_dir = "";
 
+    public static String log_dir = "";
 
     public static int http_duration_wait;
 
@@ -104,6 +105,9 @@ public class Config {
 
         //how long should the API be waited for?
         http_duration_wait = Integer.parseInt( dotenv.get("HTTP_DURATION_WAIT", "10") );
+
+        //Which directory is for logging?
+        log_dir = dotenv.get("LOG_DIR_CUSTOM", "logs");
     }
 
     // Static method to create instance of Singleton class
