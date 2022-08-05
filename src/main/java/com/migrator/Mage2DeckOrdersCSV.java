@@ -1,19 +1,14 @@
 package com.migrator;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -24,56 +19,32 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
         super( "orders" );
     }
 
-    public List<List<String>> deckItems2CSVRows(
-        List<Map<?, String>> deck_items,
-        CSVHeaderInterface[] enum_vals
-    ){
-
-        //the return value. will have all the CSV rows plus the headers as the first row.
-        List<List<String>> csv_rows = new ArrayList<List<String>>();
-
-        //the first row are the CSV headers. They come from an enum
-        List<String> csv_row_headers = new ArrayList<String>();
-
-        for (CSVHeaderInterface e : enum_vals) {
-            csv_row_headers.add( e.value() );
-        }
-
-        //make it the first row
-        csv_rows.add( csv_row_headers );
-
-        for(int i = 0; i < deck_items.size(); i++){
-            List<String> csv_row = new ArrayList<String>();
-
-            for (CSVHeaderInterface d : enum_vals ) {
-                csv_row.add( deck_items.get(i).get(d) );
-            }
-
-            csv_rows.add( csv_row );
-        }
-
-        return csv_rows;
-    }
-
+    /*
+     * DESCRIPTION: converts Magento orders to Deck CSV data.
+    */
     public List<List<String>> mage2DeckOrdersCSVRows( JSONObject mage_orders ) throws IOException, ParseException{
 
         //the JSON form of the Deck Commerce data to export
         Mage2DeckOrdersCSV m2doc = new Mage2DeckOrdersCSV();
 
+        //convert the Magento orders to an object format that can be quickly converted to Deck CSV.
         List<Map<DeckOrderHeaders, String>> mdmo = m2doc.mage2DeckMapOrders(mage_orders);
 
-
+        //start with blank CSV rows
         List<List<String>> csv_rows = new ArrayList<List<String>>();
 
+        //initial blank CSV headers, or the first row here
         List<String> csv_row_headers = new ArrayList<String>();
 
-        //the first row is headers
+        //Populate headers here.
         for (DeckOrderHeaders d : DeckOrderHeaders.values()) {
             csv_row_headers.add( d.value );
         }
 
+        //add the headers row to the overall CSV structure
         csv_rows.add( csv_row_headers );
         
+        //now populate the actual CSV data
         for(int i = 0; i < mdmo.size(); i++){
             List<String> csv_row = new ArrayList<String>();
 
@@ -84,6 +55,7 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
             csv_rows.add( csv_row );
         }
 
+        //ready to be saved to file
         return csv_rows;
     }
 
@@ -96,42 +68,37 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
 
         System.out.println("json_folder = "+ json_folder);
 
-        String json_filename = json_folder + "sample_mcstaging_orders.json";
+        //String json_filename = json_folder + "sample_mcstaging_orders.json";
+        //String json_filename = json_folder + "orders_pageSize-10_currentPage-1_2019-01-03_08-50-22.json";
+        String json_filename = json_folder + "orders_pageSize-10_currentPage-500_2019-11-30_22-24-20.json";
 
         //get the data from the saved .json file of Magento orders.
         String json_data = ReadFromFile.contents( json_filename );
 
         JSONObject mage_orders_items = new JSONObject(json_data);
 
+        JSONArray mage_orders = mage_orders_items.getJSONArray("items");
+
         //the JSON form of the Deck Commerce data to export
         Mage2DeckOrdersCSV m2doc = new Mage2DeckOrdersCSV();
 
-        //List<Map<CSVHeaderInterface, String>> mdmo = m2doc.mage2DeckMapOrders(mage_orders_items);
         List<Map<DeckOrderHeaders, String>> mdmo = m2doc.mage2DeckMapOrders(mage_orders_items);
-
-        //List<Map<CSVHeaderInterface, String>> mdmo2 = (List<Map<?, String>>)mdmo;
 
         List<List<String>> csv_rows = m2doc.deckItems2CSVRows( mdmo, DeckOrderHeaders.values() );
 
+        //get the first order timestamp.
+        String start_ts = mage_orders.getJSONObject(0).getString("created_at");
 
-        String SAMPLE_CSV_FILE = "./sample_mcstaging_orders.csv";
-        
-        try (
-            BufferedWriter writer = Files.newBufferedWriter(Paths.get(SAMPLE_CSV_FILE));
+        //prepare and then save the CSV file
+        m2doc.prepareDeckCSVFile( start_ts, csv_rows );
 
-            CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT );
-        ) {
-
-            //csvPrinter.printRecord( csv_row_headers );
-
-            for(int i = 0; i < csv_rows.size(); i++){
-                csvPrinter.printRecord( csv_rows.get(i) );
-            }
-
-            csvPrinter.flush();
-        }
     }
 
+    /*
+     * DESCRIPTION: converts the Magento order JSON to a List of Maps that use 
+     * Deck order CSV header as key. Will be used for the final conversion to 
+     * CSV data.
+    */
     public List<Map<DeckOrderHeaders, String>> mage2DeckMapOrders( JSONObject mage_orders_items ) throws ParseException
     {
         
@@ -155,7 +122,16 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
             String deck_date_str = mage2DeckDateTime( mage_order.getString("created_at") );
             map.put(DeckOrderHeaders.ORDERDATE, deck_date_str);
 
-            map.put(DeckOrderHeaders.ORDERSTATUSCODE, "");
+            //Special handling for the OrderStatusCode column
+            String order_status_raw = mage_order.optString("status");
+
+            String[] c_statuses = {"closed", "canceled"};
+            boolean c_found = Arrays.stream(c_statuses).anyMatch(s -> s.equals(order_status_raw));
+
+            //if the order status is cancelled or closed, it is "C". Otherwise, it is "Z".
+            String OrderStatusCode = c_found? "C" : "Z";
+
+            map.put(DeckOrderHeaders.ORDERSTATUSCODE, OrderStatusCode);
             map.put(DeckOrderHeaders.DISCOUNTAMOUNT, mage_order.optString("base_discount_amount").toString() );
             map.put(DeckOrderHeaders.DISCOUNTCODE, "");
             map.put(DeckOrderHeaders.SHIPPINGMETHOD, mage_order.optString("shipping_description") );
@@ -217,36 +193,9 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
         return order_rows;
     }
 
-    public static void enumMerator( CSVHeaderInterface[] enum_vals ){
-
-        for (CSVHeaderInterface e : enum_vals) {
-            System.out.println( e + " " + e.value() );
-        }
-    }
-
     public static void main( String[] args ) throws IOException, ParseException
     {
-
-        enumMerator( DeckOrderHeaders.values() );
-
-        /*
-        for (DeckOrderHeaders d : DeckOrderHeaders.values()) {
-            System.out.println( d + " " + d.value );
-        }*/
-
-        /*
-        CSVHeaderInterface[] y = DeckOrderHeaders.values();
-
-        System.out.println( y );
-
-
-        enumMerator( y );
-        */
-
-        //System.out.println( DeckOrderHeaders.values() );
-
-        //List<?> xyz = (ArrayList<?>)DeckOrderHeaders.values();
-
-        //mageOrderLoadTester();
+        //just testing
+        mageOrderLoadTester();
     }
 }
