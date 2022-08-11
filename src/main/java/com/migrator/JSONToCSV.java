@@ -23,10 +23,14 @@ public class JSONToCSV {
     //default API section to convert from Magento to Deck Commerce.
     public String section = "orders";
 
+    /* used for when making a seperate CSV file from JSON data which is a 
+    sub-section of a certain section JSON. e.g., if one wants a items file that 
+    comes from orders. */
+    public String sub_section = null;
+
     public Integer mage_max_per_page = 5;
 
-    public JSONToCSV( @Nullable String section ) throws IOException{
-
+    public JSONToCSV(@Nullable String section) throws IOException{
         section = section != null ? section : this.section;
 
         this.section = section;
@@ -34,7 +38,24 @@ public class JSONToCSV {
         //make sure the Config instance is loaded
         Config.getInstance();
     }
-    
+
+    // used for things like the product items of orders; from the same data source as orders
+    public JSONToCSV(@Nullable String section, @Nullable String sub_section) throws IOException{
+        this(section);
+
+        this.sub_section = sub_section;
+    }
+
+    /* get the folder name for where the JSON source data files are stored, with
+    the section variable providing the end subdirectory */
+    public String getJsonFolder(String section){
+        String[] json_folder_arr = { Config.json_save_dir, section };
+        String json_folder = String.join(File.separator, json_folder_arr) + File.separator;
+
+        return json_folder;
+    }
+
+    // DESCRIPTION: converts Magento date string into Deck Commerce date string
     public String mage2DeckDateTime(String mage_date_str) throws ParseException{
 
         Date mage_date = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(mage_date_str);
@@ -90,11 +111,20 @@ public class JSONToCSV {
 
         Config.getInstance();
 
+        String section = this.section;
+
         //which folder for the CSV file?
-        String[] csv_folder_arr = { Config.csv_save_dir, this.section };
+        String[] csv_folder_arr = { Config.csv_save_dir, section };
         String csv_folder = String.join(File.separator, csv_folder_arr) + File.separator;
 
-        String csv_filename = csv_folder + "LegacyOrder_";
+        // capitalize first letter for the section
+        String Section = section.substring(0, 1).toUpperCase() + section.substring(1);
+
+        //ditto for the sub-section, if applicable
+        String SubSection = this.sub_section == null ? "" :
+        this.sub_section.substring(0, 1).toUpperCase() + this.sub_section.substring(1);
+
+        String csv_filename = csv_folder + "Legacy" + Section + SubSection + "_";
 
         csv_filename += timestamp.replace(" ", "_")
                             .replace(":", "-");
