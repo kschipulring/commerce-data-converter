@@ -20,8 +20,8 @@ public class WriteToFile {
         //which is the base folder of this app?
         String abs_path = new java.io.File("").getAbsolutePath();
 
-        String directory = abs_path + "/" + Config.base_save_dir + "/";
-        String file_write_name = directory + "/" + f_name;
+        String directory = abs_path + File.separator + Config.base_save_dir + File.separator;
+        String file_write_name = directory + File.separator + f_name;
 
         try {
 
@@ -34,10 +34,20 @@ public class WriteToFile {
             FileWriter myWriter = new FileWriter(file_write_name);
             myWriter.write(f_contents);
             myWriter.close();
-            System.out.println("Successfully wrote to the file.");
+
+            String msg = "Successfully wrote to the file: \n" + file_write_name;
+            System.out.println(msg);
+
+            M2SLogger.info(msg);
         } catch (IOException e) {
-            System.out.println("An error occurred.");
+            String msg = "An error occurred saving to file: \n" + file_write_name;
+            System.out.println(msg);
+
+            M2SLogger.severe(msg);
+
             e.printStackTrace();
+
+            M2SLogger.severe(e.getMessage());
         }
     }
 }

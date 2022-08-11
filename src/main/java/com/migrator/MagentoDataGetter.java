@@ -11,6 +11,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 abstract public class MagentoDataGetter {
@@ -63,15 +64,55 @@ abstract public class MagentoDataGetter {
             .connectTimeout( Duration.ofSeconds(Config.http_duration_wait) )
             .build();
     }
+    
+    public boolean isJSONValid(String test) {
+        try {
+            new JSONObject(test);
+        } catch (JSONException ex) {
+            // e.g. in case JSONArray is valid as well...
+            try {
+                new JSONArray(test);
+            } catch (JSONException ex1) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     protected void saveJsonFile(String file_contents) throws IOException
     {
 
-        //the file shall be named on when the first record was created. But a mere string is not good enough for s
+        if( !isJSONValid(file_contents) ){
+            String msg = "Magento JSON is not Valid for:\n" + "-section: " + this.api_section + "\n";
+            msg += "-current_page: " + this.current_page;
+            msg += "-mage_max_per_page: " + this.mage_max_per_page;
+
+            System.out.println( msg );
+
+            M2SLogger.warning(msg);
+            M2SLogger.warning(file_contents);
+
+            return;
+        }
+
+        //the file shall be partially named on when the first record was created. But the timestamp must first be extracted.
         JSONObject jsonObject = new JSONObject( file_contents );
 
         //the items section is an array of the meaningful records
-        JSONArray jsonArray = jsonObject.getJSONArray("items");
+        JSONArray jsonArray = jsonObject.optJSONArray("items");
+
+        if( jsonArray == null ){
+            String msg = "Magento JSON is NULL for:\n" + "-section: " + this.api_section + "\n";
+            msg += "-current_page: " + this.current_page;
+            msg += "-mage_max_per_page: " + this.mage_max_per_page;
+
+            System.out.println( msg );
+
+            M2SLogger.warning(msg);
+            M2SLogger.warning(file_contents);
+
+            return;
+        }
 
         //we want the timestamp from the first order from this batch
         String start_ts = jsonArray.getJSONObject(0).getString("created_at")
@@ -79,13 +120,12 @@ abstract public class MagentoDataGetter {
                             .replace(':', '-');
 
         //immediate subdirectory of 'saved_files'
-        String parent_dir = Config.json_save_subdir + "/" + this.api_section + "/";
+        String parent_dir = Config.json_save_subdir + File.separator + this.api_section + File.separator;
 
         //file name to save to
-        String json_filename = parent_dir + "orders_pageSize-" + this.mage_max_per_page;
-
-        json_filename += "_currentPage-" + this.current_page;
-        json_filename += "_" + start_ts + ".json";
+        String json_filename = parent_dir + this.api_section + "_pageSize-";
+        json_filename += this.mage_max_per_page + "_currentPage-";
+        json_filename += this.current_page + "_" + start_ts + ".json";
 
         //save the json file from the Magento API call contents
         WriteToFile.write(json_filename, file_contents);
@@ -97,6 +137,8 @@ abstract public class MagentoDataGetter {
 
         //which URL provides the data?
         String request_url = mage_api_base_url + endpoint;
+
+        System.out.println( "request_url = " + request_url );
         
         HttpRequest request = HttpRequest.newBuilder()
                 .GET()
@@ -140,6 +182,27 @@ abstract public class MagentoDataGetter {
         endpoint += "&searchCriteria[filter_groups][0][filters][0][value]=0";
         endpoint += "&searchCriteria[filter_groups][0][filters][0][condition_type]=eq";
 
+        //must at least have an increment_id field
+        endpoint += "&searchCriteria[filter_groups][1][filters][0][field]=increment_id";
+        endpoint += "&searchCriteria[filter_groups][1][filters][0][value]=null";
+        endpoint += "&searchCriteria[filter_groups][1][filters][0][condition_type]=neq";
+
+        //whitelist of returned fields for orders
+        endpoint += "&items[entity_id,base_currency_code,base_discount_amount,created_at,";
+        endpoint += "increment_id,customer_id,customer_firstname,customer_lastname,";
+        endpoint += "customer_email,billing_address[firstname,lastname,street,city,postcode,";
+        endpoint += "region_code,country_id,telephone],status,items[base_price,tax_amount,";
+        endpoint += "base_tax_amount,base_price_incl_tax,extension_attributes[delivery_type,";
+        endpoint += "is_lcp,delivery_date,product_options],name,product_id,sku,qty_ordered],";
+        endpoint += "extension_attributes[shipping_assignments[shipping[address,";
+        endpoint += "method,total[base_shipping_incl_tax,shipping_tax_amount,";
+        endpoint += "shipping_amount,base_shipping_amount,base_shipping_tax_amount,";
+        endpoint += "shipping_amount]]],payment_additional_info],base_subtotal,";
+        endpoint += "base_tax_amount,base_subtotal_incl_tax,base_shipping_amount,";
+        endpoint += "base_shipping_tax_amount,base_shipping_incl_tax,subtotal,";
+        endpoint += "tax_amount,total_due,payment_additional_info,";
+        endpoint += "payment[cc_exp_month,cc_exp_year,amount_ordered,method],shipping_description]";
+
         return this.getRequest(endpoint);
     }
 
@@ -164,14 +227,15 @@ abstract public class MagentoDataGetter {
         String base_json_filename = this.api_section + "_pageSize-";
         base_json_filename += this.mage_max_per_page + "_currentPage-" + this.current_page + "_";
 
+        System.out.println( "this.current_page = " + this.current_page  );
+
         String json_filename = json_folder + base_json_filename;
 
         //is the downloaded JSON file in the saved directory?
         String existing_name = DirScan.fileStartsWithFullName(json_filename);
 
-
-        System.out.println( "MagentoDataGetter, this.load_file_if_exist = " + this.load_file_if_exist );
-        System.out.println( "existing_name = " + existing_name );
+        //must be reset for each iteration of the batch API JSON call and file save
+        this.raw_response = null;
 
         //if so and if the class property 'load_file_if_exist' is true
         if( this.load_file_if_exist && existing_name != null ){
