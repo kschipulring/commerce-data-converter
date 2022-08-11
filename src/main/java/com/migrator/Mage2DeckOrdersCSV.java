@@ -14,96 +14,61 @@ import org.json.JSONObject;
 
 public class Mage2DeckOrdersCSV extends JSONToCSV {
 
+    //constructor, for Java newbies
     public Mage2DeckOrdersCSV() throws IOException{
-        //signify that this is the Orders section and not something else like customersa
+        //signify that this is the Orders section and not something else like customers
         super( "orders" );
     }
 
-    /*
-     * DESCRIPTION: converts Magento orders to Deck CSV data.
-    */
-    public List<List<String>> mage2DeckOrdersCSVRows( JSONObject mage_orders ) throws IOException, ParseException{
-
-        //the JSON form of the Deck Commerce data to export
-        Mage2DeckOrdersCSV m2doc = new Mage2DeckOrdersCSV();
-
-        //convert the Magento orders to an object format that can be quickly converted to Deck CSV.
-        List<Map<DeckOrderHeaders, String>> mdmo = m2doc.mage2DeckMapOrders(mage_orders);
-
-        //start with blank CSV rows
-        List<List<String>> csv_rows = new ArrayList<List<String>>();
-
-        //initial blank CSV headers, or the first row here
-        List<String> csv_row_headers = new ArrayList<String>();
-
-        //Populate headers here.
-        for (DeckOrderHeaders d : DeckOrderHeaders.values()) {
-            csv_row_headers.add( d.value );
-        }
-
-        //add the headers row to the overall CSV structure
-        csv_rows.add( csv_row_headers );
-        
-        //now populate the actual CSV data
-        for(int i = 0; i < mdmo.size(); i++){
-            List<String> csv_row = new ArrayList<String>();
-
-            for (DeckOrderHeaders d : DeckOrderHeaders.values()) {
-                csv_row.add( mdmo.get(i).get(d) );
-            }
-
-            csv_rows.add( csv_row );
-        }
-
-        //ready to be saved to file
-        return csv_rows;
-    }
-
-    public static void mageOrderLoadTester() throws IOException, ParseException{
-        
+    //get Magento JSON orders from a saved JSON file
+    public JSONArray getMageOrdersFromFile(String base_json_filename) throws IOException, ParseException
+    {
         Mage2SFOrders mage2SFOrders = new Mage2SFOrders();
-        
-        String[] json_folder_arr = { Config.json_save_dir, mage2SFOrders.section };
-        String json_folder = String.join(File.separator, json_folder_arr) + File.separator;
 
-        System.out.println("json_folder = "+ json_folder);
-
-        //String json_filename = json_folder + "sample_mcstaging_orders.json";
-        //String json_filename = json_folder + "orders_pageSize-10_currentPage-1_2019-01-03_08-50-22.json";
-        String json_filename = json_folder + "orders_pageSize-10_currentPage-500_2019-11-30_22-24-20.json";
+        String json_folder = this.getJsonFolder(mage2SFOrders.section);
+        String json_filename = json_folder + base_json_filename;
 
         //get the data from the saved .json file of Magento orders.
-        String json_data = ReadFromFile.contents( json_filename );
+        String json_str = ReadFromFile.contents( json_filename );
 
-        JSONObject mage_orders_items = new JSONObject(json_data);
+        //The actual source orders to convert from
+        return this.getMageOrdersFromString(json_str);
+    }
 
-        JSONArray mage_orders = mage_orders_items.getJSONArray("items");
+    //can be from a static JSON file or a REST API call.
+    public JSONArray getMageOrdersFromString(String json_orders_string)
+    {
+        JSONObject mage_orders_items = new JSONObject(json_orders_string);
 
-        //the JSON form of the Deck Commerce data to export
-        Mage2DeckOrdersCSV m2doc = new Mage2DeckOrdersCSV();
+        //The actual source orders to convert from
+        return mage_orders_items.getJSONArray("items");
+    }
 
-        List<Map<DeckOrderHeaders, String>> mdmo = m2doc.mage2DeckMapOrders(mage_orders_items);
+    public void saveDeckFileFromMageJSONOrders(String json_filename) throws IOException, ParseException
+    {
 
-        List<List<String>> csv_rows = m2doc.deckItems2CSVRows( mdmo, DeckOrderHeaders.values() );
+        JSONArray mage_orders = this.getMageOrdersFromFile(json_filename);
 
-        //get the first order timestamp.
+        //the Map form of the Deck Commerce data to export
+        List<Map<DeckOrderHeaders, String>> deckMapOrders = this.mage2DeckMapOrders(mage_orders);
+
+        //a usable format for org.apache.commons.csv classes to turn into a CSV file
+        List<List<String>> csv_rows = this.deckItems2CSVRows(deckMapOrders, DeckOrderHeaders.values());
+
+        //get the first order timestamp. Used for part of the CSV file name.
         String start_ts = mage_orders.getJSONObject(0).getString("created_at");
 
         //prepare and then save the CSV file
-        m2doc.prepareDeckCSVFile( start_ts, csv_rows );
-
+        this.prepareDeckCSVFile( start_ts, csv_rows );
     }
 
     /*
      * DESCRIPTION: converts the Magento order JSON to a List of Maps that use 
      * Deck order CSV header as key. Will be used for the final conversion to 
-     * CSV data.
+     * CSV data. This occurs with mage2DeckOrdersCSVRows(...)
     */
-    public List<Map<DeckOrderHeaders, String>> mage2DeckMapOrders( JSONObject mage_orders_items ) throws ParseException
+    public List<Map<DeckOrderHeaders, String>> mage2DeckMapOrders(JSONArray mage_orders) throws ParseException
     {
-        
-        //each "item" represents a Magento order, not a magento 'quote' (or cart) item
-        JSONArray mage_orders = mage_orders_items.getJSONArray("items");
 
         //what gets returned
         List<Map<DeckOrderHeaders, String>> order_rows = new ArrayList<Map<DeckOrderHeaders, String>>();
@@ -125,6 +90,7 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
             //Special handling for the OrderStatusCode column
             String order_status_raw = mage_order.optString("status");
 
+            //find out if the order is closed or canceled...
             String[] c_statuses = {"closed", "canceled"};
             boolean c_found = Arrays.stream(c_statuses).anyMatch(s -> s.equals(order_status_raw));
 
@@ -193,9 +159,21 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
         return order_rows;
     }
 
+    public void mageOrderLoadTester() throws IOException, ParseException
+    {
+
+        //String json_filename = "sample_mcstaging_orders.json";
+        //String json_filename = "orders_pageSize-10_currentPage-1_2019-01-03_08-50-22.json";
+        String json_filename = "orders_pageSize-10_currentPage-500_2019-11-30_22-24-20.json";
+
+        this.saveDeckFileFromMageJSONOrders(json_filename);
+    }
+
     public static void main( String[] args ) throws IOException, ParseException
     {
+        Mage2DeckOrdersCSV m2d = new Mage2DeckOrdersCSV();
+        
         //just testing
-        mageOrderLoadTester();
+        m2d.mageOrderLoadTester();
     }
 }
