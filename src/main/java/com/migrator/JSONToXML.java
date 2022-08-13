@@ -47,6 +47,11 @@ public class JSONToXML {
         String json_data = ReadFromFile.contents( json_filename );
 
         JSONObject obj = new JSONObject(json_data);
+
+        //test output
+        saveXMLFile(xml_filename, obj);
+
+        System.out.println( "contents saved to: " + xml_filename );
     }
 
     public void prepareSFXMLFile(String timestamp, JSONObject jsonObject) throws IOException{
