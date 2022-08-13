@@ -81,22 +81,33 @@ public class Config {
             .ignoreIfMissing()
             .load();
         
-        //load the .env file
-        Dotenv dotenv_specific = Dotenv.configure()
-            .directory( env_dir )
-            .filename(env_specific)
-            .ignoreIfMalformed()
-            .ignoreIfMissing()
-            .load();
+        //load the .env file specific to the environment (if applicable)
+        Dotenv dotenv_specific = null;
+
+        if( env_specific != null ){
+            dotenv_specific = Dotenv.configure()
+                .directory( env_dir )
+                .filename(env_specific)
+                .ignoreIfMalformed()
+                .ignoreIfMissing()
+                .load();
+        }else{
+            //if no specific environment name is provided, use the default core settings.
+            dotenv_specific = dotenv_core;
+        }
         
-        //Magento REST API security basic auth token
-        mage_auth_token = dotenv_core.get("MAGE_AUTH_TOKEN");
+        //Magento REST API security basic auth token. First, go to the specific dot env config, then the core.
+        mage_auth_token = dotenv_specific.get("MAGE_AUTH_TOKEN", dotenv_core.get("MAGE_AUTH_TOKEN"));
 
         //Magento REST API base URL
-        mage_api_base_url = dotenv_core.get("MAGE_API_BASE_URL");
+        mage_api_base_url = dotenv_specific.get("MAGE_API_BASE_URL", dotenv_core.get("MAGE_API_BASE_URL"));
+
+        //Your company name.
+        company_name = dotenv_specific.get("YOUR_COMPANY_NAME", dotenv_core.get("YOUR_COMPANY_NAME"));
+
 
         //master directory for all saved files
-        base_save_dir = dotenv_core.get("BASE_SAVE_DIR", "saved_files");
+        base_save_dir = dotenv_specific.get("BASE_SAVE_DIR", dotenv_core.get("BASE_SAVE_DIR", "saved_files"));
 
         /*
         Full folder string for the base JSON save folder. Will have subdirectory
@@ -115,13 +126,13 @@ public class Config {
 
 
         //how many results per page maximum?
-        mage_max_per_page = Integer.parseInt( dotenv_core.get("MAGE_MAX_PER_PAGE", "10") );
+        mage_max_per_page = Integer.parseInt( dotenv_specific.get("MAGE_MAX_PER_PAGE", dotenv_core.get("MAGE_MAX_PER_PAGE", "10")) );
 
         //how long should the API be waited for?
-        http_duration_wait = Integer.parseInt( dotenv_core.get("HTTP_DURATION_WAIT", "10") );
+        http_duration_wait = Integer.parseInt( dotenv_specific.get("HTTP_DURATION_WAIT", dotenv_core.get("HTTP_DURATION_WAIT", "10")) );
 
         //Which directory is for logging?
-        log_dir = dotenv_core.get("LOG_DIR_CUSTOM", "logs");
+        log_dir = dotenv_specific.get("LOG_DIR_CUSTOM", dotenv_core.get("LOG_DIR_CUSTOM", "logs"));
     }
 
     // Static method to create instance of Singleton class
@@ -134,9 +145,9 @@ public class Config {
         return single_instance;
     }
 
+    //kind of a lazy default
     public static Config getInstance() throws IOException
     {
-        //kind of a lazy default
         return getInstance(null);
     }
 }
