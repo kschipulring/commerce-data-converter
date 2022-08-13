@@ -1,6 +1,9 @@
 package com.migrator;
 
 import java.io.IOException;
+
+import javax.annotation.Nullable;
+
 import java.io.File;
 
 import io.github.cdimascio.dotenv.Dotenv;
@@ -9,6 +12,9 @@ import io.github.cdimascio.dotenv.Dotenv;
 public class Config {
     // Static variable reference of single_instance of type Config
     private static Config single_instance = null;
+
+    // is it staging, development or production?
+    public static String env = "";
 
     // for connecting to the Magento API
     public static String mage_auth_token;
@@ -59,7 +65,7 @@ public class Config {
 
     // Constructor
     // Here we will be creating private constructor restricted to this class itself
-    private Config() throws IOException
+    private Config(@Nullable String env_specific) throws IOException
     {
 
         //Where is the .env file?
@@ -68,21 +74,29 @@ public class Config {
 
         abs_path = env_dir;
         
-        //load the .env file
-        Dotenv dotenv = Dotenv.configure()
+        //load the .env file. This one is for universal settings. Overrides will occur with load from below, if available.
+        Dotenv dotenv_core = Dotenv.configure()
             .directory( env_dir )
             .ignoreIfMalformed()
             .ignoreIfMissing()
             .load();
-
+        
+        //load the .env file
+        Dotenv dotenv_specific = Dotenv.configure()
+            .directory( env_dir )
+            .filename(env_specific)
+            .ignoreIfMalformed()
+            .ignoreIfMissing()
+            .load();
+        
         //Magento REST API security basic auth token
-        mage_auth_token = dotenv.get("MAGE_AUTH_TOKEN");
+        mage_auth_token = dotenv_core.get("MAGE_AUTH_TOKEN");
 
         //Magento REST API base URL
-        mage_api_base_url = dotenv.get("MAGE_API_BASE_URL");
+        mage_api_base_url = dotenv_core.get("MAGE_API_BASE_URL");
 
         //master directory for all saved files
-        base_save_dir = dotenv.get("BASE_SAVE_DIR", "saved_files");
+        base_save_dir = dotenv_core.get("BASE_SAVE_DIR", "saved_files");
 
         /*
         Full folder string for the base JSON save folder. Will have subdirectory
@@ -101,21 +115,28 @@ public class Config {
 
 
         //how many results per page maximum?
-        mage_max_per_page = Integer.parseInt( dotenv.get("MAGE_MAX_PER_PAGE", "10") );
+        mage_max_per_page = Integer.parseInt( dotenv_core.get("MAGE_MAX_PER_PAGE", "10") );
 
         //how long should the API be waited for?
-        http_duration_wait = Integer.parseInt( dotenv.get("HTTP_DURATION_WAIT", "10") );
+        http_duration_wait = Integer.parseInt( dotenv_core.get("HTTP_DURATION_WAIT", "10") );
 
         //Which directory is for logging?
-        log_dir = dotenv.get("LOG_DIR_CUSTOM", "logs");
+        log_dir = dotenv_core.get("LOG_DIR_CUSTOM", "logs");
     }
 
     // Static method to create instance of Singleton class
-    public static Config getInstance() throws IOException
+    public static Config getInstance(@Nullable String env_name) throws IOException
     {
-        if (single_instance == null)
-            single_instance = new Config();
+        if (single_instance == null){
+            single_instance = new Config(env_name);
+        }
  
         return single_instance;
+    }
+
+    public static Config getInstance() throws IOException
+    {
+        //kind of a lazy default
+        return getInstance(null);
     }
 }
