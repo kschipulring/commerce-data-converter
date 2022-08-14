@@ -63,6 +63,8 @@ public class Config {
 
     public static int http_duration_wait;
 
+    public static String default_sort_order = "";
+
     // Constructor
     // Here we will be creating private constructor restricted to this class itself
     private Config(@Nullable String env_specific) throws IOException
@@ -87,7 +89,7 @@ public class Config {
         if( env_specific != null ){
             dotenv_specific = Dotenv.configure()
                 .directory( env_dir )
-                .filename(env_specific)
+                .filename(env_specific + ".env")
                 .ignoreIfMalformed()
                 .ignoreIfMissing()
                 .load();
@@ -133,6 +135,9 @@ public class Config {
 
         //Which directory is for logging?
         log_dir = dotenv_specific.get("LOG_DIR_CUSTOM", dotenv_core.get("LOG_DIR_CUSTOM", "logs"));
+
+        //what is the sort order for Magento API records?
+        default_sort_order = dotenv_specific.get("SORT_ORDER", dotenv_core.get("SORT_ORDER", "ASC"));
     }
 
     // Static method to create instance of Singleton class

@@ -51,8 +51,11 @@ public class App
         //how many results per page?
         Integer max_per_page = props.containsKey("max_per_page") ? 
                             Integer.parseInt( props.get("max_per_page") ) : 10;
+
+        //which Magento environment is being targeted for data retrieval?
+        String env = props.containsKey("env") ? props.get("env") : null;
         
-        MagentoOrderGetter mog = new MagentoOrderGetter(max_per_page);
+        MagentoOrderGetter mog = new MagentoOrderGetter(max_per_page, env);
 
         //save the JSON files after downloading content from Magento API?
         mog.save_file = true;
