@@ -151,13 +151,13 @@ public class Mage2SFOrders extends JSONToXML {
     }
 
     //populates order -> 'product-lineitems' tag
-    public static JSONObject getSFProductLineItems( JSONArray mage_order_cart_items ){
+    public static JSONObject getSFProductLineItems( JSONArray mage_order_product_items ){
 
         JSONArray sf_order_cart_items = new JSONArray();
 
-        for(int j=0; j < mage_order_cart_items.length(); j++){
+        for(int j=0; j < mage_order_product_items.length(); j++){
 
-            JSONObject mage_order_cart_item = mage_order_cart_items.getJSONObject(j);
+            JSONObject mage_order_product_item = mage_order_product_items.getJSONObject(j);
 
             /*
             we only want actual ordered items. So when someone orders a 
@@ -168,9 +168,9 @@ public class Mage2SFOrders extends JSONToXML {
             have a parent_item_id and also are not with a 'row_total' value of 
             zero.
             */
-            double row_total = mage_order_cart_item.getDouble("row_total");
+            double row_total = mage_order_product_item.getDouble("row_total");
 
-            if( mage_order_cart_item.has("parent_item_id") && row_total < 1){
+            if( mage_order_product_item.has("parent_item_id") && row_total < 1){
 
                 //move to the next iteration, because this quote item is a duplicate of another
                 continue;
@@ -180,19 +180,19 @@ public class Mage2SFOrders extends JSONToXML {
 
             JSONObjectArray sf_order_cart_item_sorter = new JSONObjectArray();
 
-            sf_order_cart_item_sorter.put( "net-price", mage_order_cart_item.get("base_price") )
-                      .put( "tax", mage_order_cart_item.get("tax_amount") )
-                      .put( "gross-price", mage_order_cart_item.get("base_price_incl_tax") )
-                      .put( "base-price", mage_order_cart_item.get("base_price") )
-                      .put( "lineitem-text", mage_order_cart_item.get("name") )
-                      .put( "tax-basis", mage_order_cart_item.get("base_price") )
+            sf_order_cart_item_sorter.put( "net-price", mage_order_product_item.get("base_price") )
+                      .put( "tax", mage_order_product_item.get("tax_amount") )
+                      .put( "gross-price", mage_order_product_item.get("base_price_incl_tax") )
+                      .put( "base-price", mage_order_product_item.get("base_price") )
+                      .put( "lineitem-text", mage_order_product_item.get("name") )
+                      .put( "tax-basis", mage_order_product_item.get("base_price") )
                       .put( "position", j+1 )
-                      .put( "product-id", mage_order_cart_item.get("product_id") )
-                      .put( "product-name", mage_order_cart_item.get("name") )
-                      .put( "quantity", mage_order_cart_item.get("qty_ordered") );
+                      .put( "product-id", mage_order_product_item.get("product_id") )
+                      .put( "product-name", mage_order_product_item.get("name") )
+                      .put( "quantity", mage_order_product_item.get("qty_ordered") );
 
-            double temp_tax_rate = mage_order_cart_item.getDouble("base_tax_amount") /
-                                   mage_order_cart_item.getDouble("base_price");
+            double temp_tax_rate = mage_order_product_item.getDouble("base_tax_amount") /
+                                   mage_order_product_item.getDouble("base_price");
 
             sf_order_cart_item_sorter.put( "tax-rate", temp_tax_rate );
 
@@ -554,9 +554,9 @@ public class Mage2SFOrders extends JSONToXML {
             sorter.put( "current-order-no", mage_order.get("entity_id") );
 
             /* ORDER -> PRODUCT LINE ITEMS SUB-SECTION */
-            JSONArray mage_order_cart_items = mage_order.getJSONArray("items");
+            JSONArray mage_order_product_items = mage_order.getJSONArray("items");
 
-            JSONObject sf_order_productLineItems = getSFProductLineItems( mage_order_cart_items );
+            JSONObject sf_order_productLineItems = getSFProductLineItems( mage_order_product_items );
 
             sorter.put( "product-lineitems", sf_order_productLineItems );
             /* END ORDER -> PRODUCT LINE ITEMS SUB-SECTION */
