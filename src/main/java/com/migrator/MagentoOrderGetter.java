@@ -1,6 +1,8 @@
 package com.migrator;
 import java.io.IOException;
 
+import javax.annotation.Nullable;
+
 //import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -9,8 +11,8 @@ public class MagentoOrderGetter extends MagentoDataGetter{
     protected JSONObject jsonObject = null;
     
     //constructor
-    public MagentoOrderGetter(Integer mage_max_per_page) throws IOException {
-        super( mage_max_per_page );
+    public MagentoOrderGetter(Integer mage_max_per_page, @Nullable String env) throws IOException {
+        super( mage_max_per_page, env);
 
         String endpoint_extras = "";
 

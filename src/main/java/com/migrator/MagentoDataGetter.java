@@ -52,11 +52,11 @@ abstract public class MagentoDataGetter {
 
     protected final HttpClient httpClient;
     
-    public MagentoDataGetter(Integer mage_max_per_page ) throws IOException
+    public MagentoDataGetter(Integer mage_max_per_page, @Nullable String env) throws IOException
     {
 
         //Config is singleton
-        Config.getInstance();
+        Config.getInstance(env);
 
         this.mage_api_base_url = Config.mage_api_base_url;
         this.mage_auth_token = Config.mage_auth_token;
@@ -65,8 +65,10 @@ abstract public class MagentoDataGetter {
         mage_max_per_page = mage_max_per_page != null ? mage_max_per_page : Config.mage_max_per_page;
         this.mage_max_per_page = mage_max_per_page;
 
-        System.out.println( "mage_max_per_page" );
-        System.out.println( mage_max_per_page );
+        System.out.println( "mage_max_per_page = "  + mage_max_per_page );
+
+        //establish the sort order for Magento API
+        this.sort_order = Config.default_sort_order;
 
         httpClient = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
