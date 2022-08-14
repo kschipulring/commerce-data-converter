@@ -145,7 +145,7 @@ abstract public class MagentoDataGetter {
         //which URL provides the data?
         String request_url = mage_api_base_url + endpoint;
 
-        System.out.println( "request_url = " + request_url );
+        //System.out.println( "request_url = " + request_url );
         
         HttpRequest request = HttpRequest.newBuilder()
                 .GET()
@@ -185,7 +185,7 @@ abstract public class MagentoDataGetter {
         endpoint += "&searchCriteria[currentPage]=" + this.current_page;
         endpoint += "&searchCriteria[sortOrders][0][direction]=" + this.sort_order;
 
-        System.out.println( "this.endpoint_extras = " + this.endpoint_extras );
+        //System.out.println( "this.endpoint_extras = " + this.endpoint_extras );
 
         //likely additional endpoint portions from child class implementations.
         endpoint += this.endpoint_extras;
