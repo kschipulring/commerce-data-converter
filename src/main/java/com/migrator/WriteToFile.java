@@ -11,6 +11,12 @@ public class WriteToFile {
         //the filename must not be empty or null.
         if( f_name == null || f_name.isEmpty() || f_contents == null || f_contents.isEmpty() )
         {
+            
+            String error_msg = "Can't write to filename of: " + f_name;
+            error_msg += "\n with f_contents of: " + f_contents;
+            
+            M2SLogger.severe(error_msg);
+            
             return;
         }
 
