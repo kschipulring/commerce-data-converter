@@ -10,12 +10,15 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
+import javax.annotation.Nullable;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 abstract public class MagentoDataGetter {
 
+    //which page from the Magento API call is currently being scanned?
     protected int current_page = 1;
 
     //the contents from either the Magento API or the 'saved_files' local directory
@@ -40,6 +43,12 @@ abstract public class MagentoDataGetter {
     protected String mage_api_base_url = null;
     protected String mage_auth_token = null;
     public Integer mage_max_per_page = 10;
+
+    //the sort order of rows retrieved from Magento API endpoints. Default.
+    protected String sort_order = "ASC";
+
+    //additional parameters sent to the Magento API call.
+    protected String endpoint_extras = null;
 
     protected final HttpClient httpClient;
     
@@ -87,8 +96,6 @@ abstract public class MagentoDataGetter {
             msg += "-current_page: " + this.current_page;
             msg += "-mage_max_per_page: " + this.mage_max_per_page;
 
-            System.out.println( msg );
-
             M2SLogger.warning(msg);
             M2SLogger.warning(file_contents);
 
@@ -105,8 +112,6 @@ abstract public class MagentoDataGetter {
             String msg = "Magento JSON is NULL for:\n" + "-section: " + this.api_section + "\n";
             msg += "-current_page: " + this.current_page;
             msg += "-mage_max_per_page: " + this.mage_max_per_page;
-
-            System.out.println( msg );
 
             M2SLogger.warning(msg);
             M2SLogger.warning(file_contents);
@@ -168,40 +173,20 @@ abstract public class MagentoDataGetter {
     }
 
     //builds the request GET URL, then uses it to call the above method
-    public String getJSONAPIContent(String api_section, String sort_order_field) throws IOException, InterruptedException
+    public String getJSONAPIContent(String api_section, String sort_order_field)
+    throws IOException, InterruptedException
     {
-        //Magento API section. Could be for any section, besides orders
+        //Magento API section. Could be for any section, as well as orders.
         String endpoint = api_section + "?searchCriteria[sortOrders][0][field]=";
         endpoint += sort_order_field;
         endpoint += "&searchCriteria[pageSize]=" + this.mage_max_per_page;
         endpoint += "&searchCriteria[currentPage]=" + this.current_page;
-        endpoint += "&searchCriteria[sortOrders][0][direction]=ASC";
+        endpoint += "&searchCriteria[sortOrders][0][direction]=" + this.sort_order;
 
-        //don't want guests, as they have no customer_id
-        endpoint += "&searchCriteria[filter_groups][0][filters][0][field]=customer_is_guest";
-        endpoint += "&searchCriteria[filter_groups][0][filters][0][value]=0";
-        endpoint += "&searchCriteria[filter_groups][0][filters][0][condition_type]=eq";
+        System.out.println( "this.endpoint_extras = " + this.endpoint_extras );
 
-        //must at least have an increment_id field
-        endpoint += "&searchCriteria[filter_groups][1][filters][0][field]=increment_id";
-        endpoint += "&searchCriteria[filter_groups][1][filters][0][value]=null";
-        endpoint += "&searchCriteria[filter_groups][1][filters][0][condition_type]=neq";
-
-        //whitelist of returned fields for orders
-        endpoint += "&items[entity_id,base_currency_code,base_discount_amount,created_at,";
-        endpoint += "increment_id,customer_id,customer_firstname,customer_lastname,";
-        endpoint += "customer_email,billing_address[firstname,lastname,street,city,postcode,";
-        endpoint += "region_code,country_id,telephone],status,items[base_price,tax_amount,";
-        endpoint += "base_tax_amount,base_price_incl_tax,extension_attributes[delivery_type,";
-        endpoint += "is_lcp,delivery_date,product_options],name,product_id,sku,qty_ordered],";
-        endpoint += "extension_attributes[shipping_assignments[shipping[address,";
-        endpoint += "method,total[base_shipping_incl_tax,shipping_tax_amount,";
-        endpoint += "shipping_amount,base_shipping_amount,base_shipping_tax_amount,";
-        endpoint += "shipping_amount]]],payment_additional_info],base_subtotal,";
-        endpoint += "base_tax_amount,base_subtotal_incl_tax,base_shipping_amount,";
-        endpoint += "base_shipping_tax_amount,base_shipping_incl_tax,subtotal,";
-        endpoint += "tax_amount,total_due,payment_additional_info,";
-        endpoint += "payment[cc_exp_month,cc_exp_year,amount_ordered,method],shipping_description]";
+        //likely additional endpoint portions from child class implementations.
+        endpoint += this.endpoint_extras;
 
         return this.getRequest(endpoint);
     }

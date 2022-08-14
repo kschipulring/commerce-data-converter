@@ -11,6 +11,36 @@ public class MagentoOrderGetter extends MagentoDataGetter{
     //constructor
     public MagentoOrderGetter(Integer mage_max_per_page) throws IOException {
         super( mage_max_per_page );
+
+        String endpoint_extras = "";
+
+        //don't want guests, as they have no customer_id
+        endpoint_extras += "&searchCriteria[filter_groups][0][filters][0][field]=customer_is_guest";
+        endpoint_extras += "&searchCriteria[filter_groups][0][filters][0][value]=0";
+        endpoint_extras += "&searchCriteria[filter_groups][0][filters][0][condition_type]=eq";
+
+        //must at least have a populated increment_id field
+        endpoint_extras += "&searchCriteria[filter_groups][1][filters][0][field]=increment_id";
+        endpoint_extras += "&searchCriteria[filter_groups][1][filters][0][value]=null";
+        endpoint_extras += "&searchCriteria[filter_groups][1][filters][0][condition_type]=neq";
+
+        //whitelist of returned fields for orders
+        endpoint_extras += "&items[entity_id,base_currency_code,base_discount_amount,created_at,";
+        endpoint_extras += "increment_id,customer_id,customer_firstname,customer_lastname,";
+        endpoint_extras += "customer_email,billing_address[firstname,lastname,street,city,postcode,";
+        endpoint_extras += "region_code,country_id,telephone],status,items[base_price,tax_amount,";
+        endpoint_extras += "base_tax_amount,base_price_incl_tax,extension_attributes[delivery_type,";
+        endpoint_extras += "is_lcp,delivery_date,product_options],name,product_id,sku,qty_ordered],";
+        endpoint_extras += "extension_attributes[shipping_assignments[shipping[address,";
+        endpoint_extras += "method,total[base_shipping_incl_tax,shipping_tax_amount,";
+        endpoint_extras += "shipping_amount,base_shipping_amount,base_shipping_tax_amount,";
+        endpoint_extras += "shipping_amount]]],payment_additional_info],base_subtotal,";
+        endpoint_extras += "base_tax_amount,base_subtotal_incl_tax,base_shipping_amount,";
+        endpoint_extras += "base_shipping_tax_amount,base_shipping_incl_tax,subtotal,";
+        endpoint_extras += "tax_amount,total_due,payment_additional_info,";
+        endpoint_extras += "payment[cc_exp_month,cc_exp_year,amount_ordered,method],shipping_description]";
+
+        this.endpoint_extras = endpoint_extras;
     }
 
     public JSONObject getOrdersJson(int... cp) throws IOException, InterruptedException
