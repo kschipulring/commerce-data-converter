@@ -33,6 +33,7 @@ public class JSONToCSV {
     public JSONToCSV(@Nullable String section) throws IOException{
         section = section != null ? section : this.section;
 
+        //updating the section property of this class
         this.section = section;
         
         //make sure the Config instance is loaded
@@ -69,7 +70,7 @@ public class JSONToCSV {
      * being saved to file.
     */
     public List<List<String>> deckItems2CSVRows(
-        List<Map<DeckOrderHeaders, String>> mdmo,
+        List<Map<CSVHeaderInterface, String>> mdmo,
         CSVHeaderInterface[] enum_vals
     ){
 
@@ -83,7 +84,7 @@ public class JSONToCSV {
             csv_row_headers.add( e.value() );
         }
 
-        M2SLogger.info("My first Log Message");
+        M2SLogger.info("Converting to CSV");
 
         //make it the first row
         csv_rows.add( csv_row_headers );
@@ -114,7 +115,7 @@ public class JSONToCSV {
         String section = this.section;
 
         //which folder for the CSV file?
-        String[] csv_folder_arr = { Config.csv_save_dir, section };
+        String[] csv_folder_arr = { Config.csv_save_dir, Config.env, section };
         String csv_folder = String.join(File.separator, csv_folder_arr) + File.separator;
 
         // capitalize first letter for the section

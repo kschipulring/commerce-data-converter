@@ -97,6 +97,9 @@ public class Config {
             //if no specific environment name is provided, use the default core settings.
             dotenv_specific = dotenv_core;
         }
+
+        //Which environment?
+        env = dotenv_specific.get("ENV", dotenv_core.get("ENV"));
         
         //Magento REST API security basic auth token. First, go to the specific dot env config, then the core.
         mage_auth_token = dotenv_specific.get("MAGE_AUTH_TOKEN", dotenv_core.get("MAGE_AUTH_TOKEN"));
