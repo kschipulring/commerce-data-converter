@@ -1,6 +1,5 @@
 package com.migrator;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Arrays;
@@ -14,10 +13,15 @@ import org.json.JSONObject;
 
 public class Mage2DeckOrdersCSV extends JSONToCSV {
 
+    //for batch processes of order saves
+    Mage2DeckOrdersItemsCSV mi = null;
+
     //constructor, for Java newbies
     public Mage2DeckOrdersCSV() throws IOException{
         //signify that this is the Orders section and not something else like customers
         super( "orders" );
+
+        this.mi = new Mage2DeckOrdersItemsCSV();
     }
 
     //get Magento JSON orders from a saved JSON file
@@ -35,7 +39,7 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
         return this.getMageOrdersFromString(json_str);
     }
 
-    //can be from a static JSON file or a REST API call.
+    //can be from a static JSON file or a REST API call.  Called from above method.
     public JSONArray getMageOrdersFromString(String json_orders_string)
     {
         JSONObject mage_orders_items = new JSONObject(json_orders_string);
@@ -50,7 +54,7 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
         JSONArray mage_orders = this.getMageOrdersFromFile(json_filename);
 
         //the Map form of the Deck Commerce data to export
-        List<Map<DeckOrderHeaders, String>> deckMapOrders = this.mage2DeckMapOrders(mage_orders);
+        List<Map<CSVHeaderInterface, String>> deckMapOrders = this.mage2DeckMapOrders(mage_orders);
 
         //a usable format for org.apache.commons.csv classes to turn into a CSV file
         List<List<String>> csv_rows = this.deckItems2CSVRows(deckMapOrders, DeckOrderHeaders.values());
@@ -67,35 +71,51 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
      * Deck order CSV header as key. Will be used for the final conversion to 
      * CSV data. This occurs with mage2DeckOrdersCSVRows(...)
     */
-    public List<Map<DeckOrderHeaders, String>> mage2DeckMapOrders(JSONArray mage_orders) throws ParseException
+    @SuppressWarnings("unchecked")
+    public List<Map<CSVHeaderInterface, String>> mage2DeckMapOrders(JSONArray mage_orders) throws ParseException, IOException
     {
 
         //what gets returned
-        List<Map<DeckOrderHeaders, String>> order_rows = new ArrayList<Map<DeckOrderHeaders, String>>();
+        List<Map<CSVHeaderInterface, String>> order_rows = new ArrayList<Map<CSVHeaderInterface, String>>();
 
         //loop through the original Magento API orders
         for (int i = 0; i < mage_orders.length(); i++) {
             JSONObject mage_order = mage_orders.getJSONObject(i);
 
-            Map<DeckOrderHeaders, String> map = new EnumMap<DeckOrderHeaders, String>(DeckOrderHeaders.class);
+            //Map<CSVHeaderInterface, String> map = new EnumMap<DeckOrderHeaders, String>(DeckOrderHeaders.class);
+            EnumMap map = new EnumMap<DeckOrderHeaders, String>(DeckOrderHeaders.class);
+
+            String order_number = mage_order.get("entity_id").toString();
          
-            map.put(DeckOrderHeaders.ORDERNUMBER, mage_order.get("entity_id").toString() );
+            map.put(DeckOrderHeaders.ORDERNUMBER, order_number );
             map.put(DeckOrderHeaders.SITECODE,  Config.company_name.replace(" ", "-") );
             map.put(DeckOrderHeaders.CUSTOMERID, mage_order.get("customer_id").toString() );
             map.put(DeckOrderHeaders.CUSTOMERLOCALE, "en-US");
 
-            String deck_date_str = mage2DeckDateTime( mage_order.getString("created_at") );
+            String created_at = mage_order.getString("created_at");
+
+            String deck_date_str = mage2DeckDateTime( created_at );
             map.put(DeckOrderHeaders.ORDERDATE, deck_date_str);
 
             //Special handling for the OrderStatusCode column
             String order_status_raw = mage_order.optString("status");
 
-            //find out if the order is closed or canceled...
-            String[] c_statuses = {"closed", "canceled"};
+            //find out if the order is closed, canceled or fraud...
+            String[] c_statuses = {"closed", "canceled", "fraud"};
             boolean c_found = Arrays.stream(c_statuses).anyMatch(s -> s.equals(order_status_raw));
 
             //if the order status is cancelled or closed, it is "C". Otherwise, it is "Z".
             String OrderStatusCode = c_found? "C" : "Z";
+
+            // process the Order Items
+            JSONArray orderItems = mage_order.getJSONArray("items");
+
+            if( i == 0 ){
+                this.mi.created_at = created_at;
+            }
+
+            this.mi.saveDeckFileFromMageJSONOrderItems(order_number, OrderStatusCode, orderItems);
+
 
             map.put(DeckOrderHeaders.ORDERSTATUSCODE, OrderStatusCode);
             map.put(DeckOrderHeaders.DISCOUNTAMOUNT, mage_order.optString("base_discount_amount").toString() );
