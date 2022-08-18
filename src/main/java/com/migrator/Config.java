@@ -118,15 +118,15 @@ public class Config {
         Full folder string for the base JSON save folder. Will have subdirectory
         like 'orders' added on in actual saving/retrieving.
         */
-        String[] json_folder_arr = { abs_path, base_save_dir, json_save_subdir };
+        String[] json_folder_arr = { abs_path, base_save_dir, env, json_save_subdir };
         json_save_dir = String.join(File.separator, json_folder_arr) + File.separator;
 
         //full folder string for the base XML save folder.
-        String[] xml_folder_arr = { abs_path, base_save_dir, xml_save_subdir };
+        String[] xml_folder_arr = { abs_path, base_save_dir, env, xml_save_subdir };
         xml_save_dir = String.join(File.separator, xml_folder_arr) + File.separator;
 
         //full folder string for the base CSV save folder.
-        String[] csv_folder_arr = { abs_path, base_save_dir, csv_save_subdir };
+        String[] csv_folder_arr = { abs_path, base_save_dir, env, csv_save_subdir };
         csv_save_dir = String.join(File.separator, csv_folder_arr) + File.separator;
 
 

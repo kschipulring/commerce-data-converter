@@ -115,8 +115,11 @@ public class JSONToCSV {
         String section = this.section;
 
         //which folder for the CSV file?
-        String[] csv_folder_arr = { Config.csv_save_dir, Config.env, section };
+        String[] csv_folder_arr = { Config.csv_save_dir, section };
         String csv_folder = String.join(File.separator, csv_folder_arr) + File.separator;
+
+        M2SSystem.println( "Config.env = " + Config.env );
+        M2SSystem.println( "csv_folder = " + csv_folder );
 
         // capitalize first letter for the section
         String Section = section.substring(0, 1).toUpperCase() + section.substring(1);

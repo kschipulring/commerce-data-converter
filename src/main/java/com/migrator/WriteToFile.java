@@ -26,7 +26,7 @@ public class WriteToFile {
         //which is the base folder of this app?
         String abs_path = new java.io.File("").getAbsolutePath();
 
-        String directory = abs_path + File.separator + Config.base_save_dir + File.separator + Config.env;
+        String directory = abs_path + File.separator + Config.base_save_dir;
 
         String file_write_name = directory + File.separator + f_name;
 
