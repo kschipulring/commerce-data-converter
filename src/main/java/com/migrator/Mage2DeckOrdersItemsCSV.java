@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -16,7 +18,7 @@ public class Mage2DeckOrdersItemsCSV extends JSONToCSV {
      public String created_at = null;
 
      //this will be a large batch of CSV rows for a instance of this class.
-     public List<Map<CSVHeaderInterface, String>> deckMapOrderItems = null;
+     public List<List<String>> deckMapOrderItems = null;
 
      //to determine if this batch can finally be saved. False means not yet.
      public boolean is_last_iteration = false;
@@ -24,6 +26,10 @@ public class Mage2DeckOrdersItemsCSV extends JSONToCSV {
      public Mage2DeckOrdersItemsCSV() throws IOException{
           //signify that this is the Order items (products) section and not something else like customers
           super( "orders", "items" );
+
+          M2SSystem.println( "Mage2DeckOrdersItemsCSV initiated" );
+
+          this.deckMapOrderItems = new ArrayList<List<String>>();
      }
 
      //helper method to convert Magento Order Items to Deck Commerce CSV counterparts
@@ -65,7 +71,6 @@ public class Mage2DeckOrdersItemsCSV extends JSONToCSV {
                     mage_order_product_item.optString("discount_amount").toString() : null;
                
                map.put(DeckOrderItemHeaders.DISCOUNTAMOUNT, discount_amount);
-
                map.put(DeckOrderItemHeaders.USSALESTAX, mage_order_product_item.optString("tax_amount").toString());
 
                order_items_rows.add(map);
@@ -78,17 +83,24 @@ public class Mage2DeckOrdersItemsCSV extends JSONToCSV {
           String order_number, String OrderStatusCode, JSONArray mage_order_product_items
      ) throws IOException, ParseException
      {
- 
-         //the Map form of the Deck Commerce data to export
-         List<Map<CSVHeaderInterface, String>> deckMapOrderItems =
-          this.mage2DeckMapOrderItems(order_number, OrderStatusCode, mage_order_product_items);
- 
-         //a usable format for org.apache.commons.csv classes to turn into a CSV file
-         List<List<String>> csv_rows = this.deckItems2CSVRows(deckMapOrderItems, DeckOrderItemHeaders.values());
 
-         System.out.println( csv_rows );
- 
-         //prepare and then save the CSV file
-         this.prepareDeckCSVFile( this.created_at, csv_rows );
+          //the Map form of the Deck Commerce data to export
+          List<Map<CSVHeaderInterface, String>> deckMapOrderItems =
+          this.mage2DeckMapOrderItems(order_number, OrderStatusCode, mage_order_product_items);
+
+          //a usable format for org.apache.commons.csv classes to turn into a CSV file
+          List<List<String>> csv_rows = this.deckItems2CSVRows(deckMapOrderItems, DeckOrderItemHeaders.values());
+
+          //M2SSystem.println( csv_rows );
+
+          M2SSystem.println( "M2SSystem.println( Config.env ) = " + Config.env );
+
+          if(!this.is_last_iteration){
+               this.deckMapOrderItems = Stream.concat(this.deckMapOrderItems.stream(), csv_rows.stream())
+               .collect(Collectors.toList());
+          }else{
+               //prepare and then save the CSV file
+               this.prepareDeckCSVFile( this.created_at, this.deckMapOrderItems );
+          }
      }
 }

@@ -78,8 +78,10 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
         //what gets returned
         List<Map<CSVHeaderInterface, String>> order_rows = new ArrayList<Map<CSVHeaderInterface, String>>();
 
+        Integer mol = (Integer)mage_orders.length();
+
         //loop through the original Magento API orders
-        for (int i = 0; i < mage_orders.length(); i++) {
+        for (int i = 0; i < mol; i++) {
             JSONObject mage_order = mage_orders.getJSONObject(i);
 
             //Map<CSVHeaderInterface, String> map = new EnumMap<DeckOrderHeaders, String>(DeckOrderHeaders.class);
@@ -89,10 +91,10 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
          
             map.put(DeckOrderHeaders.ORDERNUMBER, order_number );
             map.put(DeckOrderHeaders.SITECODE,  Config.company_name.replace(" ", "-") );
-            map.put(DeckOrderHeaders.CUSTOMERID, mage_order.get("customer_id").toString() );
+            map.put(DeckOrderHeaders.CUSTOMERID, mage_order.opt("customer_id").toString() );
             map.put(DeckOrderHeaders.CUSTOMERLOCALE, "en-US");
 
-            String created_at = mage_order.getString("created_at");
+            String created_at = mage_order.optString("created_at");
 
             String deck_date_str = mage2DeckDateTime( created_at );
             map.put(DeckOrderHeaders.ORDERDATE, deck_date_str);
@@ -110,10 +112,17 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
             // process the Order Items
             JSONArray orderItems = mage_order.getJSONArray("items");
 
+            //if this is the first order...
             if( i == 0 ){
                 this.mi.created_at = created_at;
             }
 
+            //if this is the last order...
+            if( i == (mol - 1) ){
+                this.mi.is_last_iteration = true;
+            }
+
+            //now for the seperate order items file
             this.mi.saveDeckFileFromMageJSONOrderItems(order_number, OrderStatusCode, orderItems);
 
 
@@ -184,7 +193,9 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
 
         //String json_filename = "sample_mcstaging_orders.json";
         //String json_filename = "orders_pageSize-10_currentPage-1_2019-01-03_08-50-22.json";
-        String json_filename = "orders_pageSize-10_currentPage-500_2019-11-30_22-24-20.json";
+        //String json_filename = "orders_pageSize-10_currentPage-500_2019-11-30_22-24-20.json";
+
+        String json_filename = "orders_pageSize-10_currentPage-1_2019-01-03_08-50-22.json";
 
         this.saveDeckFileFromMageJSONOrders(json_filename);
     }

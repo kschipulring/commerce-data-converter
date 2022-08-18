@@ -123,7 +123,7 @@ public class App
     public static void saveDeckOrders(JSONArray mage_orders) throws IOException 
     {
         //get the first order timestamp.
-        String start_ts = mage_orders.getJSONObject(0).getString("created_at");
+        String start_ts = mage_orders.optJSONObject(0).optString("created_at");
 
         //convert the Magento orders to Deck Commerce Orders
         
