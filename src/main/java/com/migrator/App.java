@@ -1,7 +1,7 @@
 package com.migrator;
 
 import java.io.IOException;
-
+import java.text.ParseException;
 import java.util.HashMap;
 
 import javax.annotation.Nullable;
@@ -75,21 +75,17 @@ public class App
             */
             JSONObject orders_json = mog.getOrdersJson(i);
 
-            JSONArray temp_arr = null;
+            JSONArray temp_order_items_arr = null;
 
             if( orders_json != null ){
-                temp_arr = orders_json.optJSONArray("items");
+                temp_order_items_arr = orders_json.optJSONArray("items");
 
-                if( temp_arr != null ){
-                    mage_order_groups.add(temp_arr);
+                if( temp_order_items_arr != null ){
+                    mage_order_groups.add(temp_order_items_arr);
                 }
             }
         }
 
-
-        //System.out.println( jsonArray.getJSONObject(0).get("created_at") );
-
-        //return jsonArray;
         return mage_order_groups;
     }
 
@@ -105,10 +101,8 @@ public class App
 
             JSONObject mage_order_obj = new JSONObject();
 
-
             System.out.println( "start_ts = " + start_ts );
             
-
             mage_order_obj.put("items", mage_orders);
 
             //to convert the Magento orders to Salesforce storefront orders
@@ -120,13 +114,19 @@ public class App
         }
     }
 
-    public static void saveDeckOrders(JSONArray mage_orders) throws IOException 
+    public static void saveDeckOrders(List<JSONArray> mage_orders_list) throws IOException, ParseException 
     {
-        //get the first order timestamp.
-        String start_ts = mage_orders.optJSONObject(0).optString("created_at");
 
-        //convert the Magento orders to Deck Commerce Orders
+        for(int i = 0; i < mage_orders_list.size(); i++){
+
+            JSONArray mage_orders = mage_orders_list.get(i);
         
+            //convert the Magento orders to Deck Commerce Orders. First, get the right class instance.
+            Mage2DeckOrdersCSV m2d = new Mage2DeckOrdersCSV();
+
+            //take the opened Magento JSON orders, covert them to Deck Orders CSV and save it.
+            m2d.saveDeckFileFromMageJSONOrders(mage_orders);
+        }
     }
 
     /*
@@ -165,7 +165,7 @@ public class App
         return cl_props;
     }
 
-    public static void main( String[] args ) throws IOException, InterruptedException
+    public static void main( String[] args ) throws IOException, InterruptedException, ParseException
     {
 
         // get the command line parameters (assuming that there are any)
@@ -202,22 +202,16 @@ public class App
             case "convertcsv":
                 mage_orders = getMageOrders( cl_props, true );
 
-                saveSFOrders(mage_orders);
+                saveDeckOrders(mage_orders);
             break;
             case "getconvertcsv":
                 mage_orders = getMageOrders( cl_props, false );
 
-                saveSFOrders(mage_orders);
+                saveDeckOrders(mage_orders);
             break;
             default:
                 mage_orders = getMageOrders( cl_props, false );
             break;
         }
-
-        /*for (String s: args) {
-            System.out.println(s);
-        }*/
-
-        //items.map().forEach((k, v) -> System.out.println(k + ":" + v));
     }
 }
