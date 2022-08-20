@@ -100,7 +100,7 @@ public class Config {
 
         //Which environment?
         env = dotenv_specific.get("ENV", dotenv_core.get("ENV"));
-        
+
         //Magento REST API security basic auth token. First, go to the specific dot env config, then the core.
         mage_auth_token = dotenv_specific.get("MAGE_AUTH_TOKEN", dotenv_core.get("MAGE_AUTH_TOKEN"));
 
@@ -114,19 +114,21 @@ public class Config {
         //master directory for all saved files
         base_save_dir = dotenv_specific.get("BASE_SAVE_DIR", dotenv_core.get("BASE_SAVE_DIR", "saved_files"));
 
+        base_save_dir += File.separator + env;
+
         /*
         Full folder string for the base JSON save folder. Will have subdirectory
         like 'orders' added on in actual saving/retrieving.
         */
-        String[] json_folder_arr = { abs_path, base_save_dir, env, json_save_subdir };
+        String[] json_folder_arr = { abs_path, base_save_dir, json_save_subdir };
         json_save_dir = String.join(File.separator, json_folder_arr) + File.separator;
 
         //full folder string for the base XML save folder.
-        String[] xml_folder_arr = { abs_path, base_save_dir, env, xml_save_subdir };
+        String[] xml_folder_arr = { abs_path, base_save_dir, xml_save_subdir };
         xml_save_dir = String.join(File.separator, xml_folder_arr) + File.separator;
 
         //full folder string for the base CSV save folder.
-        String[] csv_folder_arr = { abs_path, base_save_dir, env, csv_save_subdir };
+        String[] csv_folder_arr = { abs_path, base_save_dir, csv_save_subdir };
         csv_save_dir = String.join(File.separator, csv_folder_arr) + File.separator;
 
 

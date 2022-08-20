@@ -129,7 +129,10 @@ abstract public class MagentoDataGetter {
         //immediate subdirectory of 'saved_files'
         String parent_dir = Config.json_save_subdir + File.separator + this.api_section + File.separator;
 
-        //file name to save to
+        /*
+        file name to save to. The second 'this.api_subsection' is part of the 
+        filename itself.  The first is the subdirectory.
+        */
         String json_filename = parent_dir + this.api_section + "_pageSize-";
         json_filename += this.mage_max_per_page + "_currentPage-";
         json_filename += this.current_page + "_" + start_ts + ".json";
