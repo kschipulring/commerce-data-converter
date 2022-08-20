@@ -48,10 +48,15 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
         return mage_orders_items.getJSONArray("items");
     }
 
-    public void saveDeckFileFromMageJSONOrders(String json_filename) throws IOException, ParseException
+    public void saveDeckFileFromMageJSONOrdersFile(String json_filename) throws IOException, ParseException
     {
-
         JSONArray mage_orders = this.getMageOrdersFromFile(json_filename);
+
+        this.saveDeckFileFromMageJSONOrders(mage_orders);
+    }
+
+    public void saveDeckFileFromMageJSONOrders(JSONArray mage_orders) throws IOException, ParseException
+    {
 
         //the Map form of the Deck Commerce data to export
         List<Map<CSVHeaderInterface, String>> deckMapOrders = this.mage2DeckMapOrders(mage_orders);
@@ -88,10 +93,12 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
             EnumMap map = new EnumMap<DeckOrderHeaders, String>(DeckOrderHeaders.class);
 
             String order_number = mage_order.get("entity_id").toString();
+
+            //M2SSystem.println( "customer id = " + mage_order.optString("customer_id") );
          
             map.put(DeckOrderHeaders.ORDERNUMBER, order_number );
             map.put(DeckOrderHeaders.SITECODE,  Config.company_name.replace(" ", "-") );
-            map.put(DeckOrderHeaders.CUSTOMERID, mage_order.opt("customer_id").toString() );
+            map.put(DeckOrderHeaders.CUSTOMERID, mage_order.optString("customer_id").toString() );
             map.put(DeckOrderHeaders.CUSTOMERLOCALE, "en-US");
 
             String created_at = mage_order.optString("created_at");
@@ -197,7 +204,7 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
 
         String json_filename = "orders_pageSize-10_currentPage-1_2019-01-03_08-50-22.json";
 
-        this.saveDeckFileFromMageJSONOrders(json_filename);
+        this.saveDeckFileFromMageJSONOrdersFile(json_filename);
     }
 
     public static void main( String[] args ) throws IOException, ParseException
