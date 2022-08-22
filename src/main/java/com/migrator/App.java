@@ -101,7 +101,7 @@ public class App
 
             JSONObject mage_order_obj = new JSONObject();
 
-            System.out.println( "start_ts = " + start_ts );
+            //System.out.println( "start_ts = " + start_ts );
             
             mage_order_obj.put("items", mage_orders);
 

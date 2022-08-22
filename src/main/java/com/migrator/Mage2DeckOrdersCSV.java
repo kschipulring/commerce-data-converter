@@ -67,7 +67,7 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
         //get the first order timestamp. Used for part of the CSV file name.
         String start_ts = mage_orders.getJSONObject(0).getString("created_at");
 
-        M2SSystem.println( "start_ts = " + start_ts );
+        //M2SSystem.println( "start_ts = " + start_ts );
 
         //prepare and then save the CSV file
         this.prepareDeckCSVFile( start_ts, csv_rows );
