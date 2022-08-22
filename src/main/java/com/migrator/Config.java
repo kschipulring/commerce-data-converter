@@ -65,6 +65,9 @@ public class Config {
 
     public static String default_sort_order = "";
 
+    //should the CSV headers render?
+    public static Boolean csv_headers_render = false;
+
     // Constructor
     // Here we will be creating private constructor restricted to this class itself
     private Config(@Nullable String env_specific) throws IOException
@@ -143,6 +146,12 @@ public class Config {
 
         //what is the sort order for Magento API records?
         default_sort_order = dotenv_specific.get("SORT_ORDER", dotenv_core.get("SORT_ORDER", "ASC"));
+
+        //Should the CSV headers render as the top row?
+        String csv_headers_render_string = dotenv_specific.get("CSV_HEADERS_RENDER",
+            dotenv_core.get("CSV_HEADERS_RENDER", "false"));
+
+        csv_headers_render = Boolean.valueOf(csv_headers_render_string);
     }
 
     // Static method to create instance of Singleton class

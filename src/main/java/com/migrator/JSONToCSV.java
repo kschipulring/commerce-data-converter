@@ -71,23 +71,28 @@ public class JSONToCSV {
     */
     public List<List<String>> deckItems2CSVRows(
         List<Map<CSVHeaderInterface, String>> mdmo,
-        CSVHeaderInterface[] enum_vals
+        CSVHeaderInterface[] enum_vals,
+        @Nullable Boolean is_first_iteration
     ){
 
         //the return value. will have all the CSV rows plus the headers as the first row.
         List<List<String>> csv_rows = new ArrayList<List<String>>();
 
-        //the first row are the CSV headers. They come from an enum
-        List<String> csv_row_headers = new ArrayList<String>();
+        //only if this is the first iteration AND headers are allowed should headers be added
+        if(Config.csv_headers_render && is_first_iteration){
+            //the first row are the CSV headers. They come from an enum
+            List<String> csv_row_headers = new ArrayList<String>();
 
-        for (CSVHeaderInterface e : enum_vals) {
-            csv_row_headers.add( e.value() );
+            for (CSVHeaderInterface e : enum_vals) {
+                csv_row_headers.add( e.value() );
+            }
+
+            //make it the first row
+            csv_rows.add( csv_row_headers );
         }
 
-        M2SLogger.info("Converting to CSV");
 
-        //make it the first row
-        csv_rows.add( csv_row_headers );
+        M2SLogger.info("Converting to CSV");
 
         for(int i = 0; i < mdmo.size(); i++){
             List<String> csv_row = new ArrayList<String>();
