@@ -136,16 +136,20 @@ public class Config {
 
 
         //how many results per page maximum?
-        mage_max_per_page = Integer.parseInt( dotenv_specific.get("MAGE_MAX_PER_PAGE", dotenv_core.get("MAGE_MAX_PER_PAGE", "10")) );
+        mage_max_per_page = Integer.parseInt( dotenv_specific.get("MAGE_MAX_PER_PAGE",
+            dotenv_core.get("MAGE_MAX_PER_PAGE", "10")) );
 
         //how long should the API be waited for?
-        http_duration_wait = Integer.parseInt( dotenv_specific.get("HTTP_DURATION_WAIT", dotenv_core.get("HTTP_DURATION_WAIT", "10")) );
+        http_duration_wait = Integer.parseInt( dotenv_specific.get("HTTP_DURATION_WAIT",
+            dotenv_core.get("HTTP_DURATION_WAIT", "10")) );
 
         //Which directory is for logging?
-        log_dir = dotenv_specific.get("LOG_DIR_CUSTOM", dotenv_core.get("LOG_DIR_CUSTOM", "logs"));
+        log_dir = dotenv_specific.get("LOG_DIR_CUSTOM",
+            dotenv_core.get("LOG_DIR_CUSTOM", "logs"));
 
         //what is the sort order for Magento API records?
-        default_sort_order = dotenv_specific.get("SORT_ORDER", dotenv_core.get("SORT_ORDER", "ASC"));
+        default_sort_order = dotenv_specific.get("SORT_ORDER",
+            dotenv_core.get("SORT_ORDER", "ASC"));
 
         //Should the CSV headers render as the top row?
         String csv_headers_render_string = dotenv_specific.get("CSV_HEADERS_RENDER",
