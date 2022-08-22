@@ -20,6 +20,9 @@ public class Mage2DeckOrdersItemsCSV extends JSONToCSV {
      //this will be a large batch of CSV rows for a instance of this class.
      public List<List<String>> deckMapOrderItems = null;
 
+     //to determine if this is the first iteration for the parent order.
+     public boolean is_first_iteration = false;
+
      //to determine if this batch can finally be saved. False means not yet.
      public boolean is_last_iteration = false;
 
@@ -91,7 +94,7 @@ public class Mage2DeckOrdersItemsCSV extends JSONToCSV {
           this.mage2DeckMapOrderItems(order_number, OrderStatusCode, mage_order_product_items);
 
           //a usable format for org.apache.commons.csv classes to turn into a CSV file
-          List<List<String>> csv_rows = this.deckItems2CSVRows(deckMapOrderItems, DeckOrderItemHeaders.values());
+          List<List<String>> csv_rows = this.deckItems2CSVRows(deckMapOrderItems, DeckOrderItemHeaders.values(), this.is_first_iteration);
 
           //M2SSystem.println( csv_rows );
 

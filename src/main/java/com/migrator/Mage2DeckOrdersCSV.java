@@ -62,7 +62,7 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
         List<Map<CSVHeaderInterface, String>> deckMapOrders = this.mage2DeckMapOrders(mage_orders);
 
         //a usable format for org.apache.commons.csv classes to turn into a CSV file
-        List<List<String>> csv_rows = this.deckItems2CSVRows(deckMapOrders, DeckOrderHeaders.values());
+        List<List<String>> csv_rows = this.deckItems2CSVRows(deckMapOrders, DeckOrderHeaders.values(), true);
 
         //get the first order timestamp. Used for part of the CSV file name.
         String start_ts = mage_orders.getJSONObject(0).getString("created_at");
@@ -124,6 +124,10 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
             //if this is the first order...
             if( i == 0 ){
                 this.mi.created_at = created_at;
+
+                this.mi.is_first_iteration = true;
+            }else{
+                this.mi.is_first_iteration = false;
             }
 
             //if this is the last order...
