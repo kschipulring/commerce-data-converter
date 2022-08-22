@@ -58,10 +58,12 @@ public class Mage2DeckOrdersItemsCSV extends JSONToCSV {
                }else if( OrderStatusCode == "C" ){
                     item_status_code = "IV";
                }
-               
+
                map.put(DeckOrderItemHeaders.ITEMSTATUSCODE, item_status_code);
                map.put(DeckOrderItemHeaders.UPC, mage_order_product_item.optString("sku"));
-               map.put(DeckOrderItemHeaders.PRODUCTCODE, mage_order_product_item.optString("name"));
+
+               String product_code = mage_order_product_item.optString("name").replace(",", "");
+               map.put(DeckOrderItemHeaders.PRODUCTCODE, product_code);
                map.put(DeckOrderItemHeaders.SKU, mage_order_product_item.optString("sku"));
                map.put(DeckOrderItemHeaders.QUANTITY, mage_order_product_item.optString("qty_ordered").toString() );
                map.put(DeckOrderItemHeaders.NETPRICE, mage_order_product_item.optString("base_price").toString() );

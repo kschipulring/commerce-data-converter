@@ -157,13 +157,13 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
             .optString("method");
 
             //if is curbside
-            if( mage_shipping_method == "curbsidepickup_curbsidepickup" )
+            if( mage_shipping_method == "curbsidepickup_curbsidepickup" || joe.optString("method") == "curbsidepickup_curbsidepickup" )
             {
                 ShippingMethod = "Curbside";
             }
 
             //if is ISP
-            if( joe.optString("method") == "storepickup_storepickup" )
+            if( mage_shipping_method == "storepickup_storepickup" || joe.optString("method") == "storepickup_storepickup" )
             {
                 ShippingMethod = "Pickup";
             }
