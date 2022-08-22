@@ -31,8 +31,6 @@ public class ReadFromFile {
             M2SLogger.warning("The file = " + file_name + "does not exist. What are you doing?");
         }
 
-
-
         return null;
     }
 }

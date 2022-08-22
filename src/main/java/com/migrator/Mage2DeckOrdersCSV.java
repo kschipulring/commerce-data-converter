@@ -67,6 +67,8 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
         //get the first order timestamp. Used for part of the CSV file name.
         String start_ts = mage_orders.getJSONObject(0).getString("created_at");
 
+        M2SSystem.println( "start_ts = " + start_ts );
+
         //prepare and then save the CSV file
         this.prepareDeckCSVFile( start_ts, csv_rows );
     }
@@ -117,7 +119,7 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
             String OrderStatusCode = c_found? "C" : "Z";
 
             // process the Order Items
-            JSONArray orderItems = mage_order.getJSONArray("items");
+            JSONArray orderItems = mage_order.optJSONArray("items");
 
             //if this is the first order...
             if( i == 0 ){
@@ -136,9 +138,38 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
             map.put(DeckOrderHeaders.ORDERSTATUSCODE, OrderStatusCode);
             map.put(DeckOrderHeaders.DISCOUNTAMOUNT, mage_order.optString("base_discount_amount").toString() );
             map.put(DeckOrderHeaders.DISCOUNTCODE, "");
-            map.put(DeckOrderHeaders.SHIPPINGMETHOD, mage_order.optString("shipping_description") );
-            map.put(DeckOrderHeaders.SHIPPINGCOST, mage_order.optString("shipping_incl_tax") );
 
+            //default: UPS shipping ground
+            String ShippingMethod = "UPSG";
+
+            JSONObject joe = mage_order.optJSONObject("extension_attributes");
+
+            //if is sameday
+            if( joe.optDouble("sameday_fee") > 0 )
+            {
+                ShippingMethod = "SameDay";
+            }
+
+            String mage_shipping_method = joe
+            .optJSONArray( "shipping_assignments" )
+            .optJSONObject(0)
+            .optJSONObject( "shipping" )
+            .optString("method");
+
+            //if is curbside
+            if( mage_shipping_method == "curbsidepickup_curbsidepickup" )
+            {
+                ShippingMethod = "Curbside";
+            }
+
+            //if is ISP
+            if( joe.optString("method") == "storepickup_storepickup" )
+            {
+                ShippingMethod = "Pickup";
+            }
+
+            map.put(DeckOrderHeaders.SHIPPINGMETHOD, ShippingMethod );
+            map.put(DeckOrderHeaders.SHIPPINGCOST, mage_order.optString("shipping_incl_tax") );
             map.put(DeckOrderHeaders.SHIPPINGDISCOUNTAMOUNT, mage_order.optString("shipping_discount_amount") );
             map.put(DeckOrderHeaders.SHIPPINGDISCOUNTCODE, "");
             map.put(DeckOrderHeaders.USSHIPPINGTAX, mage_order.optString("shipping_tax_amount") );
@@ -148,7 +179,15 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
             map.put(DeckOrderHeaders.PSTSHIPPINGTAX, "");
             map.put(DeckOrderHeaders.GSTVATSHIPPINGTAX, "");
             map.put(DeckOrderHeaders.NETSHIPPINGTAX, "");
-            map.put(DeckOrderHeaders.USSALESTAX, mage_order.optString("tax_amount") );
+
+            String ussalestax = "0";
+
+            //only put the sales tax in if there are no items for this order.
+            if(orderItems == null){
+                ussalestax = mage_order.optString("tax_amount");
+            }
+
+            map.put(DeckOrderHeaders.USSALESTAX, ussalestax );
             map.put(DeckOrderHeaders.VATSALESTAX, "");
             map.put(DeckOrderHeaders.GSTSALESTAX, "");
             map.put(DeckOrderHeaders.HSTSALESTAX, "");
