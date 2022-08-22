@@ -71,7 +71,7 @@ public class MagentoOrderGetter extends MagentoDataGetter{
         endpoint_extras += "region_code,country_id,telephone],status,items[base_price,tax_amount,";
         endpoint_extras += "base_tax_amount,base_price_incl_tax,extension_attributes[delivery_type,";
         endpoint_extras += "is_lcp,delivery_date,product_options],name,product_id,sku,qty_ordered],";
-        endpoint_extras += "extension_attributes[shipping_assignments[shipping[address,";
+        endpoint_extras += "extension_attributes[sameday_fee,shipping_assignments[shipping[address,";
         endpoint_extras += "method,total[base_shipping_incl_tax,shipping_tax_amount,";
         endpoint_extras += "shipping_amount,base_shipping_amount,base_shipping_tax_amount,";
         endpoint_extras += "shipping_amount]]],payment_additional_info],base_subtotal,";
