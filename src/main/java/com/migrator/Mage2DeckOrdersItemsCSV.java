@@ -69,6 +69,14 @@ public class Mage2DeckOrdersItemsCSV extends JSONToCSV {
                map.put(DeckOrderItemHeaders.PRODUCTCODE, product_code);
                map.put(DeckOrderItemHeaders.SKU, mage_order_product_item.optString("sku"));
                map.put(DeckOrderItemHeaders.QUANTITY, mage_order_product_item.optString("qty_ordered").toString() );
+
+ 
+               //take the size from the end of the SKU (if available)
+               String[] sku_arr = mage_order_product_item.optString("sku").split("-", 2);
+               String size = sku_arr.length > 1 ? sku_arr[1] : "";
+
+               map.put(DeckOrderItemHeaders.SIZE, size );
+
                map.put(DeckOrderItemHeaders.NETPRICE, mage_order_product_item.optString("base_price").toString() );
                map.put(DeckOrderItemHeaders.GROSSPRICE, mage_order_product_item.optString("base_price_incl_tax").toString() );
 
@@ -76,6 +84,47 @@ public class Mage2DeckOrdersItemsCSV extends JSONToCSV {
                     mage_order_product_item.optString("discount_amount").toString() : null;
                
                map.put(DeckOrderItemHeaders.DISCOUNTAMOUNT, discount_amount);
+
+               
+               //multiple uses, including scanning for LCP
+               JSONObject joei = mage_order_product_item.optJSONObject("extension_attributes");
+
+               //for testing downstream. Not for directly setting in the CSV
+               Boolean is_lcp = joei.optBoolean("is_lcp");
+
+               map.put(DeckOrderItemHeaders.IS_LCP, Boolean.toString(is_lcp) );
+               map.put(DeckOrderItemHeaders.LCP_CHECK, joei.optString("lcp_check"));
+
+               //which product is this a Care Plan for? (only for LCP items)
+               String lcp_for_item_id = "";
+
+               if(is_lcp){
+                    lcp_for_item_id = joei.optString("lcp_for_item_id");
+               }
+
+               map.put(DeckOrderItemHeaders.LCP_FOR_ITEM_ID, lcp_for_item_id);
+               map.put(DeckOrderItemHeaders.LCP_TYPE, joei.optString("lcp_type"));
+
+               String lcp_add = "";
+
+               if(!is_lcp){
+                    //now for the lcp_add section
+                    JSONObject product_options = new JSONObject( joei.optString("product_options") );
+
+                    if(product_options.optJSONObject("info_buyRequest") != null){
+                         lcp_add = product_options.optJSONObject("info_buyRequest").optString( "lcp_add" );
+                    }
+     
+                    //if there is no apparent 'lcp_add' property, try looking for 'has_lcp'
+                    if(lcp_add == null || lcp_add == ""){
+                         // \"has_lcp\":1
+                         if(joei.optString("product_options").contains( "\"has_lcp\":1" ) ){
+                              lcp_add = "1";
+                         }
+                    }
+               }
+
+               map.put(DeckOrderItemHeaders.LCP_ADD, lcp_add);
                map.put(DeckOrderItemHeaders.USSALESTAX, mage_order_product_item.optString("tax_amount").toString());
 
                order_items_rows.add(map);
@@ -95,10 +144,6 @@ public class Mage2DeckOrdersItemsCSV extends JSONToCSV {
 
           //a usable format for org.apache.commons.csv classes to turn into a CSV file
           List<List<String>> csv_rows = this.deckItems2CSVRows(deckMapOrderItems, DeckOrderItemHeaders.values(), this.is_first_iteration);
-
-          //M2SSystem.println( csv_rows );
-
-          M2SSystem.println( "M2SSystem.println( Config.env ) = " + Config.env );
 
           if(!this.is_last_iteration){
                this.deckMapOrderItems = Stream.concat(this.deckMapOrderItems.stream(), csv_rows.stream())
