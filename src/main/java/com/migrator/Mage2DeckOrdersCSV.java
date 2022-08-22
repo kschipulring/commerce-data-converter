@@ -140,7 +140,17 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
 
 
             map.put(DeckOrderHeaders.ORDERSTATUSCODE, OrderStatusCode);
-            map.put(DeckOrderHeaders.DISCOUNTAMOUNT, mage_order.optString("base_discount_amount").toString() );
+
+            String base_discount_amount = "0";
+            String ussalestax = "0";
+
+            //only put the sales tax in if there are no items for this order.
+            if(orderItems == null){
+                base_discount_amount = mage_order.optString("base_discount_amount").toString();
+                ussalestax = mage_order.optString("tax_amount");
+            }
+
+            map.put(DeckOrderHeaders.DISCOUNTAMOUNT, base_discount_amount );
             map.put(DeckOrderHeaders.DISCOUNTCODE, "");
 
             //default: UPS shipping ground
@@ -183,13 +193,6 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
             map.put(DeckOrderHeaders.PSTSHIPPINGTAX, "");
             map.put(DeckOrderHeaders.GSTVATSHIPPINGTAX, "");
             map.put(DeckOrderHeaders.NETSHIPPINGTAX, "");
-
-            String ussalestax = "0";
-
-            //only put the sales tax in if there are no items for this order.
-            if(orderItems == null){
-                ussalestax = mage_order.optString("tax_amount");
-            }
 
             map.put(DeckOrderHeaders.USSALESTAX, ussalestax );
             map.put(DeckOrderHeaders.VATSALESTAX, "");
