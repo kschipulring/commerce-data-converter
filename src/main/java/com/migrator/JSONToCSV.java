@@ -91,14 +91,13 @@ public class JSONToCSV {
             csv_rows.add( csv_row_headers );
         }
 
-
-        M2SLogger.info("Converting to CSV");
+        //M2SLogger.info("Converting to CSV");
 
         for(int i = 0; i < mdmo.size(); i++){
             List<String> csv_row = new ArrayList<String>();
 
             for (CSVHeaderInterface d : enum_vals ) {
-                csv_row.add( mdmo.get(i).get(d) );
+                csv_row.add( (String)mdmo.get(i).get(d) );
             }
 
             csv_rows.add( csv_row );
@@ -123,8 +122,8 @@ public class JSONToCSV {
         String[] csv_folder_arr = { Config.csv_save_dir, section };
         String csv_folder = String.join(File.separator, csv_folder_arr) + File.separator;
 
-        M2SSystem.println( "Config.env = " + Config.env );
-        M2SSystem.println( "csv_folder = " + csv_folder );
+        //M2SSystem.println( "Config.env = " + Config.env );
+        //M2SSystem.println( "csv_folder = " + csv_folder );
 
         // capitalize first letter for the section
         String Section = section.substring(0, 1).toUpperCase() + section.substring(1);
