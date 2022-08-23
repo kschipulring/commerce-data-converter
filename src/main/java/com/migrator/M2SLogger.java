@@ -1,5 +1,6 @@
 package com.migrator;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
@@ -32,7 +33,7 @@ public class M2SLogger {
             String log_dir = Config.log_dir;
             
             //logging file name. Will always have the current date as part so that you do not have giant log files.
-            String logFile_name = log_dir + "/entries_" + today_stamp + ".log";
+            String logFile_name = log_dir + File.separator + "entries_" + today_stamp + ".log";
 
             //System.out.println( logFile_name );
 
