@@ -121,13 +121,13 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
             // process the Order Items
             JSONArray orderItems = mage_order.optJSONArray("items");
 
-            //if this is the first order...
+            this.mi.is_first_iteration = false;
+
+            //if this is the first order (not the one with Supreme Leader Snoke)...
             if( i == 0 ){
                 this.mi.created_at = created_at;
 
                 this.mi.is_first_iteration = true;
-            }else{
-                this.mi.is_first_iteration = false;
             }
 
             //if this is the last order...

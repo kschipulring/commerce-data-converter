@@ -72,7 +72,7 @@ public class Mage2DeckOrdersItemsCSV extends JSONToCSV {
 
  
                //take the size from the end of the SKU (if available)
-               String[] sku_arr = mage_order_product_item.optString("sku").split("-", 2);
+               String[] sku_arr = mage_order_product_item.optString("sku").split("-", 4);
                String size = sku_arr.length > 1 ? sku_arr[1] : "";
 
                map.put(DeckOrderItemHeaders.SIZE, size );
@@ -117,7 +117,7 @@ public class Mage2DeckOrdersItemsCSV extends JSONToCSV {
      
                     //if there is no apparent 'lcp_add' property, try looking for 'has_lcp'
                     if(lcp_add == null || lcp_add == ""){
-                         // \"has_lcp\":1
+                         // yes, a plain old string search
                          if(joei.optString("product_options").contains( "\"has_lcp\":1" ) ){
                               lcp_add = "1";
                          }
