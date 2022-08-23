@@ -19,7 +19,9 @@ public class MagentoOrderGetter extends MagentoDataGetter{
     //constructor
     public MagentoOrderGetter(Integer mage_max_per_page, @Nullable String env) throws IOException {
         super( mage_max_per_page, env);
+    }
 
+    public void setEndpointExtras(){
         String endpoint_extras = "";
 
         //don't want guests, as they have no customer_id
@@ -37,31 +39,47 @@ public class MagentoOrderGetter extends MagentoDataGetter{
         endpoint_extras += "&searchCriteria[filter_groups][2][filters][0][value]=null";
         endpoint_extras += "&searchCriteria[filter_groups][2][filters][0][condition_type]=neq";
 
+        //assuming that these are populated from the command line or perhaps elsewhere. By default, they are not.
+        String date_from = this.date_from;
+        String date_to = this.date_to;
 
+        M2SSystem.println("date_from is " + date_from);
+        M2SSystem.println("date_to is " + date_to);
+
+        //to potentially create new date strings
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        
-        //date from 18 months before present
-        Date today = new Date();
-        Calendar cal = new GregorianCalendar();
-        cal.setTime(today);
-        cal.add(Calendar.MONTH, -18);
-        Date prior18months = cal.getTime();
-        System.out.println(prior18months);
-        
-        //18 months ago string
-        String dateStrFrom = dateFormat.format(prior18months);
-        System.out.println("result is " + dateStrFrom);
 
-        //today string
-        String dateStrTo = dateFormat.format(today);
-        System.out.println("result today is " + dateStrTo);
+        //used to get todays actual date. Also usable later for a past date relative to this.
+        Date today = new Date();
+
+        //the if block here normally goes unless the 'date_from' command line parameter is populated 
+        if( date_from == null || date_from.length() < 4 ){
+
+            //date from 18 months before present
+            Calendar cal = new GregorianCalendar();
+            cal.setTime(today);
+            cal.add(Calendar.MONTH, -18);
+            Date prior18months = cal.getTime();
+            M2SSystem.println(prior18months);
+
+            //18 months ago date string
+            date_from = dateFormat.format(prior18months);
+        }
+        
+        if( date_to == null || date_to.length() < 4 ){
+            //today string
+            date_to = dateFormat.format(today);
+        }
+
+        M2SSystem.println("date_from is " + date_from);
+        M2SSystem.println("date_to is " + date_to);
 
         endpoint_extras += "&searchCriteria[filter_groups][3][filters][0][field]=created_at";
-        endpoint_extras += "&searchCriteria[filter_groups][3][filters][0][value]=" + dateStrFrom;
+        endpoint_extras += "&searchCriteria[filter_groups][3][filters][0][value]=" + date_from;
         endpoint_extras += "&searchCriteria[filter_groups][3][filters][0][condition_type]=from";
 
         endpoint_extras += "&searchCriteria[filter_groups][4][filters][0][field]=created_at";
-        endpoint_extras += "&searchCriteria[filter_groups][4][filters][0][value]=" + dateStrTo;
+        endpoint_extras += "&searchCriteria[filter_groups][4][filters][0][value]=" + date_to;
         endpoint_extras += "&searchCriteria[filter_groups][4][filters][0][condition_type]=to";
 
         //whitelist of returned fields for orders
@@ -83,7 +101,7 @@ public class MagentoOrderGetter extends MagentoDataGetter{
         //want to know how many possible records are available, across all possible pages of results
         endpoint_extras += ",total_count";
 
-        this.endpoint_extras = endpoint_extras;
+        this.setEndpointExtras(endpoint_extras);
     }
 
     public JSONObject getOrdersJson(int... cp) throws IOException, InterruptedException

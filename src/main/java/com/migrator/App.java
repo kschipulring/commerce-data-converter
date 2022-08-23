@@ -54,7 +54,17 @@ public class App
 
         //which Magento environment is being targeted for data retrieval?
         String env = props.containsKey("env") ? props.get("env") : null;
-        
+
+        //start date for how far back to search the API. No records created before this date (optional)
+        String date_from = props.containsKey("date_from") ? props.get("date_from") : null;
+
+        //start date for how far back to search the API. No records created before this date (optional)
+        String date_to = props.containsKey("date_to") ? props.get("date_to") : null;
+
+        M2SSystem.println("date_from is " + date_from);
+        M2SSystem.println("date_to is " + date_to);
+
+        //lets go get some orders now...
         MagentoOrderGetter mog = new MagentoOrderGetter(max_per_page, env);
 
         //save the JSON files after downloading content from Magento API?
@@ -65,6 +75,12 @@ public class App
 
         //which page of results to start off with?
         mog.current_page = page_start;
+
+        mog.date_from = date_from;
+        mog.date_to = date_to;
+
+        //now have the start and end dates to pull data from the API actually apply.
+        mog.setEndpointExtras();
 
 
         for(int i=page_start; i < page_end + 1; i++){
@@ -133,7 +149,7 @@ public class App
     get the command line parameters (assuming that there are any)
 
     The Format for the args. All parameters are optional and do not need to be in any order.
-    env:mcstaging,max_per_page:234,page_start:5,page_end:35,
+    env:mcstaging,max_per_page:234,page_start:5,page_end:35,date_from:2020-01-02,date_to:2022-03-01
     mode:get|getconvertxml|getconvertcsv|convertxml|convertcsv|sftpxml|sftpcsv
 
     NOTE: parameter 'mode' value sample above is only one of the possibilites 

@@ -37,7 +37,16 @@ abstract public class MagentoDataGetter {
     public String api_section = "orders";
 
     //which field should this be sorted by? Should be an existing field in the top level of the JSON return
-    public String sort_order_field = "increment_id";
+    public String sort_order_field = "created_at";
+
+    //which field should this be sorted by? Should be an existing field in the top level of the JSON return
+    public String sort_order_field_2 = "increment_id";
+
+    //records made before this date shall not be returned. OPTIONAL.
+    public String date_from = null;
+
+    //records made after this date shall not be returned. OPTIONAL.
+    public String date_to = null;
 
     //defaults, overriden with settings from the Config class via dotenv
     protected String mage_api_base_url = null;
@@ -65,7 +74,7 @@ abstract public class MagentoDataGetter {
         mage_max_per_page = mage_max_per_page != null ? mage_max_per_page : Config.mage_max_per_page;
         this.mage_max_per_page = mage_max_per_page;
 
-        System.out.println( "mage_max_per_page = "  + mage_max_per_page );
+        M2SSystem.println( "mage_max_per_page = "  + mage_max_per_page );
 
         //establish the sort order for Magento API
         this.sort_order = Config.default_sort_order;
@@ -74,6 +83,10 @@ abstract public class MagentoDataGetter {
             .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout( Duration.ofSeconds(Config.http_duration_wait) )
             .build();
+    }
+
+    public void setEndpointExtras(String endpoint_extras){
+        this.endpoint_extras = endpoint_extras;
     }
     
     public boolean isJSONValid(String test) {
@@ -178,17 +191,39 @@ abstract public class MagentoDataGetter {
     }
 
     //builds the request GET URL, then uses it to call the above method
-    public String getJSONAPIContent(String api_section, String sort_order_field)
+    public String getJSONAPIContent(@Nullable String api_section,
+                                    @Nullable String sort_order_field,
+                                    @Nullable String sort_order_field_2
+    )
     throws IOException, InterruptedException
     {
-        //Magento API section. Could be for any section, as well as orders.
-        String endpoint = api_section + "?searchCriteria[sortOrders][0][field]=";
-        endpoint += sort_order_field;
-        endpoint += "&searchCriteria[pageSize]=" + this.mage_max_per_page;
-        endpoint += "&searchCriteria[currentPage]=" + this.current_page;
+        
+        //relying on the class properties for fallbacks
+        api_section = api_section != null && api_section.length() > 0 ? 
+            api_section : this.api_section;
+
+        sort_order_field = sort_order_field != null && sort_order_field.length() > 0 ? 
+            sort_order_field : this.sort_order_field;
+
+        sort_order_field_2 = sort_order_field_2 != null && sort_order_field_2.length() > 0 ? 
+            sort_order_field_2 : this.sort_order_field_2;
+        
+        //Magento API section. Could be for any section, including orders.
+        String endpoint = api_section;
+
+        //sort by and sort direction
+        endpoint += "?searchCriteria[sortOrders][0][field]=" + sort_order_field;
         endpoint += "&searchCriteria[sortOrders][0][direction]=" + this.sort_order;
 
-        //System.out.println( "this.endpoint_extras = " + this.endpoint_extras );
+        if( sort_order_field_2 != null && sort_order_field_2.length() > 0 ){
+            endpoint += "&searchCriteria[sortOrders][1][field]=" + sort_order_field_2;
+            endpoint += "&searchCriteria[sortOrders][1][direction]=" + this.sort_order;
+        }
+
+        endpoint += "&searchCriteria[pageSize]=" + this.mage_max_per_page;
+        endpoint += "&searchCriteria[currentPage]=" + this.current_page;
+
+        //System.out.println( "endpoint = " + endpoint );
 
         //likely additional endpoint portions from child class implementations.
         endpoint += this.endpoint_extras;
@@ -239,7 +274,7 @@ abstract public class MagentoDataGetter {
             if not being loaded from a JSON file in the saved file directory, 
             load it directly from Magento Orders API.
             */
-            this.raw_response = this.getJSONAPIContent(api_section, sort_order_field);
+            this.raw_response = this.getJSONAPIContent(api_section, sort_order_field, null);
         }
 
         return this.raw_response;
