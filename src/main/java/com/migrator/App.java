@@ -61,9 +61,6 @@ public class App
         //start date for how far back to search the API. No records created before this date (optional)
         String date_to = props.containsKey("date_to") ? props.get("date_to") : null;
 
-        M2SSystem.println("date_from is " + date_from);
-        M2SSystem.println("date_to is " + date_to);
-
         //lets go get some orders now...
         MagentoOrderGetter mog = new MagentoOrderGetter(max_per_page, env);
 
@@ -116,8 +113,6 @@ public class App
             String start_ts = mage_orders.getJSONObject(0).getString("created_at");
 
             JSONObject mage_order_obj = new JSONObject();
-
-            //System.out.println( "start_ts = " + start_ts );
             
             mage_order_obj.put("items", mage_orders);
 
