@@ -203,23 +203,32 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
             map.put(DeckOrderHeaders.NETSALESTAX, "");
             map.put(DeckOrderHeaders.SUBTOTAL, mage_order.optString("subtotal") );
             map.put(DeckOrderHeaders.ORDERTOTAL, mage_order.optString("total_due") );
-            map.put(DeckOrderHeaders.BILLFIRSTNAME, mage_order.optJSONObject("billing_address").optString("firstname") );
-            map.put(DeckOrderHeaders.BILLLASTNAME, mage_order.optJSONObject("billing_address").optString("lastname") );
-            map.put(DeckOrderHeaders.BILLEMAIL, mage_order.optJSONObject("billing_address").optString("email") );
-            map.put(DeckOrderHeaders.BILLPHONE, mage_order.optJSONObject("billing_address").optString("telephone") );
-            map.put(DeckOrderHeaders.BILLADDRESS, mage_order.optJSONObject("billing_address")
-                                                    .getJSONArray("street").optString(0)
+
+            JSONObject billing_address = mage_order.optJSONObject("billing_address");
+
+            map.put(DeckOrderHeaders.BILLFIRSTNAME, billing_address.optString("firstname") );
+            map.put(DeckOrderHeaders.BILLLASTNAME, billing_address.optString("lastname") );
+            map.put(DeckOrderHeaders.BILLEMAIL, billing_address.optString("email") );
+            map.put(DeckOrderHeaders.BILLPHONE, billing_address.optString("telephone") );
+
+            JSONArray billing_streets = billing_address.getJSONArray("street");
+
+            String prime_billaddress = billing_streets.optString(0)
+                                                .replace(",", "");
+
+            if(prime_billaddress == null || prime_billaddress.isEmpty()){
+                prime_billaddress = "555 Placeholder Street";
+            }
+
+            map.put(DeckOrderHeaders.BILLADDRESS, prime_billaddress );
+            map.put(DeckOrderHeaders.BILLADDRESS2, billing_streets.optString(1)
                                                     .replace(",", "") );
-            map.put(DeckOrderHeaders.BILLADDRESS2, mage_order.optJSONObject("billing_address")
-                                                    .getJSONArray("street").optString(1)
+            map.put(DeckOrderHeaders.BILLADDRESS3, billing_streets.optString(2)
                                                     .replace(",", "") );
-            map.put(DeckOrderHeaders.BILLADDRESS3, mage_order.optJSONObject("billing_address")
-                                                    .getJSONArray("street").optString(2)
-                                                    .replace(",", "") );
-            map.put(DeckOrderHeaders.BILLCITY, mage_order.optJSONObject("billing_address").optString("city") );
-            map.put(DeckOrderHeaders.BILLPROVINCE, mage_order.optJSONObject("billing_address").optString("region_code") );
-            map.put(DeckOrderHeaders.BILLPOSTALCODE, mage_order.optJSONObject("billing_address").optString("postcode") );
-            map.put(DeckOrderHeaders.BILLCOUNTRY, mage_order.optJSONObject("billing_address").optString("country_id") );
+            map.put(DeckOrderHeaders.BILLCITY, billing_address.optString("city") );
+            map.put(DeckOrderHeaders.BILLPROVINCE, billing_address.optString("region_code") );
+            map.put(DeckOrderHeaders.BILLPOSTALCODE, billing_address.optString("postcode") );
+            map.put(DeckOrderHeaders.BILLCOUNTRY, billing_address.optString("country_id") );
 
 
             JSONObject shipping_settings = mage_order.optJSONObject("extension_attributes")
@@ -232,11 +241,21 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
             map.put(DeckOrderHeaders.SHIPLASTNAME, shipping_settings.optString("lastname") );
             map.put(DeckOrderHeaders.SHIPEMAIL, shipping_settings.optString("email") );
             map.put(DeckOrderHeaders.SHIPPHONE, shipping_settings.optString("telephone") );
-            map.put(DeckOrderHeaders.SHIPADDRESS, shipping_settings.getJSONArray("street")
+
+            JSONArray shipping_streets = shipping_settings.getJSONArray("street");
+
+            String prime_shippingaddress = shipping_streets.optString(0).replace(",", "");
+
+            if(prime_shippingaddress == null || prime_shippingaddress.isEmpty()){
+                // take the same placeholder fake street address as the one for billing
+                prime_shippingaddress = prime_billaddress;
+            }
+
+            map.put(DeckOrderHeaders.SHIPADDRESS, shipping_streets
                                                     .optString(0).replace(",", "") );
-            map.put(DeckOrderHeaders.SHIPADDRESS2, shipping_settings.getJSONArray("street")
+            map.put(DeckOrderHeaders.SHIPADDRESS2, shipping_streets
                                                     .optString(1).replace(",", "") );
-            map.put(DeckOrderHeaders.SHIPADDRESS3, shipping_settings.getJSONArray("street")
+            map.put(DeckOrderHeaders.SHIPADDRESS3, shipping_streets
                                                     .optString(2).replace(",", "") );
             map.put(DeckOrderHeaders.SHIPCITY, shipping_settings.optString("city") );
             map.put(DeckOrderHeaders.SHIPPROVINCE, shipping_settings.optString("region") );
