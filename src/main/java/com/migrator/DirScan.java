@@ -45,11 +45,14 @@ public class DirScan
         };
 
         File[] files = root.listFiles(beginswithm);
-        for (File f: files)
-        {
 
-            //we only care about the first match
-            return f.toString();
+        if(files != null){
+            for (File f: files)
+            {
+    
+                //we only care about the first match
+                return f.toString();
+            }
         }
 
         return null;
