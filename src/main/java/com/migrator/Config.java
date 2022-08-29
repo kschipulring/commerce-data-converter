@@ -6,6 +6,9 @@ import javax.annotation.Nullable;
 
 import java.io.File;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+
 import io.github.cdimascio.dotenv.Dotenv;
 //import io.github.cdimascio.dotenv.DotenvException;
 
@@ -58,6 +61,9 @@ public class Config {
 
     //what is the full directory for the CSV files?
     public static String csv_save_dir = "";
+
+    //used to help name the jobfile
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh-mm-ss");
 
     public static String log_dir = "";
 
@@ -119,6 +125,10 @@ public class Config {
 
         base_save_dir += File.separator + env;
 
+        //todays date. To be used for at least the CSV save directory.
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        String job_stamp = "job_" + sdf.format(timestamp);
+
         /*
         Full folder string for the base JSON save folder. Will have subdirectory
         like 'orders' added on in actual saving/retrieving.
@@ -131,9 +141,10 @@ public class Config {
         xml_save_dir = String.join(File.separator, xml_folder_arr) + File.separator;
 
         //full folder string for the base CSV save folder.
-        String[] csv_folder_arr = { abs_path, base_save_dir, csv_save_subdir };
+        String[] csv_folder_arr = { abs_path, base_save_dir, csv_save_subdir, job_stamp };
         csv_save_dir = String.join(File.separator, csv_folder_arr) + File.separator;
 
+        //M2SSystem.println( "csv_save_dir = " + csv_save_dir );
 
         //how many results per page maximum?
         mage_max_per_page = Integer.parseInt( dotenv_specific.get("MAGE_MAX_PER_PAGE",
@@ -146,6 +157,9 @@ public class Config {
         //Which directory is for logging?
         log_dir = dotenv_specific.get("LOG_DIR_CUSTOM",
             dotenv_core.get("LOG_DIR_CUSTOM", "logs"));
+
+        //environment perspective
+        //log_dir += File.separator + env;
 
         //what is the sort order for Magento API records?
         default_sort_order = dotenv_specific.get("SORT_ORDER",
