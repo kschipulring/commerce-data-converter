@@ -74,10 +74,12 @@ public class MagentoOrderGetter extends MagentoDataGetter{
         M2SSystem.println("date_from is " + date_from);
         M2SSystem.println("date_to is " + date_to);
 
+        //orders created no earlier than...
         endpoint_extras += "&searchCriteria[filter_groups][3][filters][0][field]=created_at";
         endpoint_extras += "&searchCriteria[filter_groups][3][filters][0][value]=" + date_from;
         endpoint_extras += "&searchCriteria[filter_groups][3][filters][0][condition_type]=from";
 
+        //orders created no later than...
         endpoint_extras += "&searchCriteria[filter_groups][4][filters][0][field]=created_at";
         endpoint_extras += "&searchCriteria[filter_groups][4][filters][0][value]=" + date_to;
         endpoint_extras += "&searchCriteria[filter_groups][4][filters][0][condition_type]=to";
@@ -114,9 +116,13 @@ public class MagentoOrderGetter extends MagentoDataGetter{
         this.current_page = current_page;
 
         //from either the REST API or the 'saved_files' cache
-        String json_str = this.getJSONstring("orders");
+        String json_str = this.getJSONstring("orders").trim();
 
-        JSONObject jsonObject = new JSONObject( json_str );
+        JSONObject jsonObject = null;
+
+        if( json_str.startsWith("{") && json_str.endsWith("}") ){
+            jsonObject = new JSONObject( json_str );
+        }
 
         return jsonObject;
     }
