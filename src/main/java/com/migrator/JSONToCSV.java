@@ -132,7 +132,9 @@ public class JSONToCSV {
         String SubSection = this.sub_section == null ? "" :
         this.sub_section.substring(0, 1).toUpperCase() + this.sub_section.substring(1);
 
-        String csv_filename = csv_folder + "Legacy" + Section + SubSection + "_";
+
+        String csv_filename = csv_folder + "Legacy" + Section.replaceAll("(s{0,1})$", "");
+        csv_filename += SubSection.replaceAll("(s{0,1})$", "") + "_";
 
         csv_filename += timestamp.replace(" ", "_")
                             .replace(":", "-");
