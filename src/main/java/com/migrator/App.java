@@ -79,22 +79,39 @@ public class App
         //now have the start and end dates to pull data from the API actually apply.
         mog.setEndpointExtras();
 
+        /*
+        how many total potential Magento API items (like orders, customers,
+        products) can be called with the given parameters
+        */
+        Integer total_orders = mog.getOrdersJson(page_start).optInt("total_count");
 
-        for(int i=page_start; i < page_end + 1; i++){
+        //how many pages are potentially allowable from the Magento API call with given parameters
+        Integer max_page_end = (int)Math.ceil((float)total_orders / (float)max_per_page);
+
+        /*
+        how many pages are used in this session is the lesser of the stated 
+        desire for number of pages called vs the maximum potential for the
+        number of pages
+        */
+        Integer final_page_end = Math.min(page_end, max_page_end);
+
+        M2SSystem.println( "final_page_end = " + final_page_end );
+
+        for(int i = page_start; i < final_page_end + 1; i++){
 
             /*
-            page_start is fed as a method parameter, because I find that easier for 
-            when the method is in an iteration block.
+            page_start is fed as a method parameter, because I find that easier 
+            for when the method is in an iteration block.
             */
             JSONObject orders_json = mog.getOrdersJson(i);
 
-            JSONArray temp_order_items_arr = null;
+            JSONArray temp_order_items = null;
 
             if( orders_json != null ){
-                temp_order_items_arr = orders_json.optJSONArray("items");
+                temp_order_items = orders_json.optJSONArray("items");
 
-                if( temp_order_items_arr != null ){
-                    mage_order_groups.add(temp_order_items_arr);
+                if( temp_order_items != null ){
+                    mage_order_groups.add(temp_order_items);
                 }
             }
         }
