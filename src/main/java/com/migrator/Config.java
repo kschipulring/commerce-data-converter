@@ -55,6 +55,8 @@ public class Config {
     //what is the full directory for the XML files?
     public static String xml_save_dir = "";
 
+    //what is the full directory for the CSV files?
+    public static String csv_save_base_dir = "";
 
     //CONV-3. where do the CSV files that will be sent to FTP be saved for now?
     public static String csv_save_subdir = "csv_dest";
@@ -141,7 +143,11 @@ public class Config {
         xml_save_dir = String.join(File.separator, xml_folder_arr) + File.separator;
 
         //full folder string for the base CSV save folder.
-        String[] csv_folder_arr = { abs_path, base_save_dir, csv_save_subdir, job_stamp };
+        String[] csv_folder_base_arr = { abs_path, base_save_dir, csv_save_subdir };
+        csv_save_base_dir = String.join(File.separator, csv_folder_base_arr) + File.separator;
+
+        //full folder string for the base CSV save folder.
+        String[] csv_folder_arr = { csv_save_base_dir, job_stamp };
         csv_save_dir = String.join(File.separator, csv_folder_arr) + File.separator;
 
         //M2SSystem.println( "csv_save_dir = " + csv_save_dir );
