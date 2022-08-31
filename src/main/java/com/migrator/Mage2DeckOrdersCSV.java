@@ -251,8 +251,7 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
                 prime_shippingaddress = prime_billaddress;
             }
 
-            map.put(DeckOrderHeaders.SHIPADDRESS, shipping_streets
-                                                    .optString(0).replace(",", "") );
+            map.put(DeckOrderHeaders.SHIPADDRESS, prime_shippingaddress );
             map.put(DeckOrderHeaders.SHIPADDRESS2, shipping_streets
                                                     .optString(1).replace(",", "") );
             map.put(DeckOrderHeaders.SHIPADDRESS3, shipping_streets
