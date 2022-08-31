@@ -1,5 +1,6 @@
 package com.migrator;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.HashMap;
@@ -155,6 +156,11 @@ public class App
             //take the opened Magento JSON orders, covert them to Deck Orders CSV and save it.
             m2d.saveDeckFileFromMageJSONOrders(mage_orders);
         }
+
+        String files_source_folder = Config.csv_save_dir + "orders" + File.separator;
+
+        //combine those CSV files from this session into master for orders and also order items
+        MergerFiles.folderFiles2MergedFiles(files_source_folder, "finals", "LegacyOrder_", "LegacyOrderItem_");
     }
 
     /*
