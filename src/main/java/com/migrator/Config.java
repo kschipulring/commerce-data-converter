@@ -65,7 +65,7 @@ public class Config {
     public static String csv_save_dir = "";
 
     //used to help name the jobfile
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh-mm-ss");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
 
     public static String log_dir = "";
 

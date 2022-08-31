@@ -59,8 +59,8 @@ public class JSONToCSV {
     // DESCRIPTION: converts Magento date string into Deck Commerce date string
     public String mage2DeckDateTime(String mage_date_str) throws ParseException{
 
-        Date mage_date = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(mage_date_str);
-        DateFormat deckDateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm");
+        Date mage_date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(mage_date_str);
+        DateFormat deckDateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm");
   
         return deckDateFormat.format(mage_date);
     }
