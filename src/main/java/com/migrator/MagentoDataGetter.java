@@ -118,12 +118,12 @@ abstract public class MagentoDataGetter {
         }
 
         //the file shall be partially named on when the first record was created. But the timestamp must first be extracted.
-        JSONObject jsonObject = new JSONObject( file_contents );
+        JSONObject ordersObject = new JSONObject( file_contents );
 
         //the items section is an array of the meaningful records
-        JSONArray jsonArray = jsonObject.optJSONArray("items");
+        JSONArray itemsArray = ordersObject.optJSONArray("items");
 
-        if( jsonArray == null ){
+        if( itemsArray == null || itemsArray.length() < 1 ){
             String msg = "Magento JSON is NULL for:\n" + "-section: " + this.api_section + "\n";
             msg += "-current_page: " + this.current_page;
             msg += "-mage_max_per_page: " + this.mage_max_per_page;
@@ -135,7 +135,7 @@ abstract public class MagentoDataGetter {
         }
 
         //we want the timestamp from the first order from this batch
-        String start_ts = jsonArray.getJSONObject(0).getString("created_at")
+        String start_ts = itemsArray.optJSONObject(0).optString("created_at")
                             .replace(' ', '_')
                             .replace(':', '-');
 
@@ -252,7 +252,7 @@ abstract public class MagentoDataGetter {
         String base_json_filename = this.api_section + "_pageSize-";
         base_json_filename += this.mage_max_per_page + "_currentPage-" + this.current_page + "_";
 
-        System.out.println( "this.current_page = " + this.current_page  );
+        M2SSystem.println( "this.current_page = " + this.current_page  );
 
         String json_filename = json_folder + base_json_filename;
 
