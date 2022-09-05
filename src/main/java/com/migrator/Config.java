@@ -32,6 +32,9 @@ public class Config {
     */
     public static int mage_max_per_page;
 
+    //How many records should be rendered into either the CSV, XML or other end file type?
+    public static int rendered_records_max;
+
     //base folder of app
     public static String abs_path = "";
 
@@ -155,6 +158,10 @@ public class Config {
         //how many results per page maximum?
         mage_max_per_page = Integer.parseInt( dotenv_specific.get("MAGE_MAX_PER_PAGE",
             dotenv_core.get("MAGE_MAX_PER_PAGE", "10")) );
+
+        //How many records should be rendered into the final merged CSV, XML or other end file type?
+        rendered_records_max = Integer.parseInt( dotenv_specific.get("RENDERED_RECORDS_MAX", 
+            dotenv_core.get("RENDERED_RECORDS_MAX", "50000")) );
 
         //how long should the API be waited for?
         http_duration_wait = Integer.parseInt( dotenv_specific.get("HTTP_DURATION_WAIT",
