@@ -94,7 +94,7 @@ public class Mage2DeckOrdersCSV extends JSONToCSV {
             //Map<CSVHeaderInterface, String> map = new EnumMap<DeckOrderHeaders, String>(DeckOrderHeaders.class);
             EnumMap map = new EnumMap<DeckOrderHeaders, String>(DeckOrderHeaders.class);
 
-            String order_number = mage_order.get("entity_id").toString();
+            String order_number = mage_order.get("increment_id").toString();
 
             //M2SSystem.println( "customer id = " + mage_order.optString("customer_id") );
          
