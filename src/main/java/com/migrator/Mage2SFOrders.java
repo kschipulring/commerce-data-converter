@@ -194,6 +194,11 @@ public class Mage2SFOrders extends JSONToXML {
             double temp_tax_rate = mage_order_product_item.getDouble("base_tax_amount") /
                                    mage_order_product_item.getDouble("base_price");
 
+            // it is possible that both inputs to above expression are zero, which a division of would yield 'NaN'
+            if( Double.isNaN(temp_tax_rate) ){
+                temp_tax_rate = 0.0;
+            }
+
             sf_order_cart_item_sorter.put( "tax-rate", temp_tax_rate );
 
             sf_order_cart_item.put("sorter", sf_order_cart_item_sorter);
