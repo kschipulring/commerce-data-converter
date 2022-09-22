@@ -35,8 +35,6 @@ public class M2SLogger {
             //logging file name. Will always have the current date as part so that you do not have giant log files.
             String logFile_name = log_dir + File.separator + "entries_" + today_stamp + ".log";
 
-            //System.out.println( logFile_name );
-
             M2SSystem.println( logFile_name );
             
             handler = new FileHandler(logFile_name, logger_append);
