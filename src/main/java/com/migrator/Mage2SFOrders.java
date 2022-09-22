@@ -11,6 +11,8 @@ import org.json.XML;
 
 public class Mage2SFOrders extends JSONToXML {
 
+    public String first_order_created_at = "";
+
     public Mage2SFOrders() throws IOException{
         super( "orders" );
     }
@@ -271,12 +273,12 @@ public class Mage2SFOrders extends JSONToXML {
 
         JSONObjectArray sos_sorter = new JSONObjectArray();
 
-        String order_status = mage_order.getString("status");
+        String order_status = mage_order.optString("status");
         String shipping_status_str = "{'shipping-status':'" + order_status + "'}}";
 
         JSONObject shipping_status = new JSONObject(shipping_status_str);
 
-        String shipping_description = mage_order.getString("shipping_description");
+        String shipping_description = mage_order.optString("shipping_description");
 
         sos_sorter.put("status", shipping_status )
                 .put("shipping-method", shipping_description );
@@ -520,7 +522,7 @@ public class Mage2SFOrders extends JSONToXML {
                                             .replace(" ", "T") + "Z"
                 )
                 .put( "created-by", "storefront" )
-                .put( "original-order-no", mage_order.get("entity_id") )
+                .put( "original-order-no", mage_order.get("increment_id") )
                 .put( "currency", mage_order.get("base_currency_code") )
                 .put( "customer-locale", "default" )
                 .put( "taxation", "net" )
@@ -535,17 +537,17 @@ public class Mage2SFOrders extends JSONToXML {
             JSONObject sf_order_status = new JSONObject();
             JSONObjectArray sf_order_status_sorter = new JSONObjectArray();
 
-            sf_order_status_sorter.put( "order-status", mage_order.get("status") );
+            sf_order_status_sorter.put( "order-status", mage_order.opt("status") );
 
 
             String[] complete_arr = { "complete", "pending", "sent_to_fulfillment" };
 
             Object cs_val = null;
 
-            if( Arrays.asList(complete_arr).contains( mage_order.getString("status") ) ){ 
+            if( Arrays.asList(complete_arr).contains( mage_order.optString("status") ) ){ 
                 cs_val = "CONFIRMED";
             }else{
-                cs_val = mage_order.getString("status");
+                cs_val = mage_order.optString("status");
             }
 
             sf_order_status_sorter.put("confirmation-status", cs_val )
@@ -556,7 +558,7 @@ public class Mage2SFOrders extends JSONToXML {
             sorter.put( "status", sf_order_status );
             /* end status sub-section of the order */
 
-            sorter.put( "current-order-no", mage_order.get("entity_id") );
+            sorter.put( "current-order-no", mage_order.get("increment_id") );
 
             /* ORDER -> PRODUCT LINE ITEMS SUB-SECTION */
             JSONArray mage_order_product_items = mage_order.getJSONArray("items");
@@ -597,8 +599,10 @@ public class Mage2SFOrders extends JSONToXML {
             sf_order.put( "sorter", sorter );
 
             //attach the order to its array
-            sfData_orders.put( "order order-no=\"" + mage_order.get("entity_id") + "\"", sf_order );
+            sfData_orders.put( "order order-no=\"" + mage_order.get("increment_id") + "\"", sf_order );
         }
+
+        this.first_order_created_at = first_order_created_at;
 
         //for the orders main tag
         String order_xmlns = "https://www.demandware.com/xml/impex/order/" + first_order_created_at;
