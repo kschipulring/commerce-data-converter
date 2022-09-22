@@ -5,7 +5,7 @@ import java.io.FileWriter;   // Import the FileWriter class
 import java.io.IOException;  // Import the IOException class to handle errors
 
 public class WriteToFile {
-    public static void write(String f_name, String f_contents) throws IOException
+    public static void write(String f_name, String f_contents, Boolean is_absolute_f_name) throws IOException
     {
 
         //the filename must not be empty or null.
@@ -23,12 +23,18 @@ public class WriteToFile {
         //make sure the Config instance is loaded
         Config.getInstance();
 
+        String file_write_name = "";
+
         //which is the base folder of this app?
-        String abs_path = new java.io.File("").getAbsolutePath();
+        if(is_absolute_f_name){
+            file_write_name = f_name;
+        }else{
+            String abs_path = new java.io.File("").getAbsolutePath();
 
-        String directory = abs_path + File.separator + Config.base_save_dir;
-
-        String file_write_name = directory + File.separator + f_name;
+            String directory = abs_path + File.separator + Config.base_save_dir;
+    
+            file_write_name = directory + File.separator + f_name;
+        }
 
         try {
 
@@ -54,5 +60,11 @@ public class WriteToFile {
 
             M2SLogger.severe(e.getMessage());
         }
+    }
+
+
+    public static void write(String f_name, String f_contents) throws IOException
+    {
+        write(f_name, f_contents, false);
     }
 }
