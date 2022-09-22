@@ -142,7 +142,7 @@ public class Config {
         json_save_dir = String.join(File.separator, json_folder_arr) + File.separator;
 
         //full folder string for the base XML save folder.
-        String[] xml_folder_arr = { abs_path, base_save_dir, xml_save_subdir };
+        String[] xml_folder_arr = { abs_path, base_save_dir, xml_save_subdir, job_stamp };
         xml_save_dir = String.join(File.separator, xml_folder_arr) + File.separator;
 
         //full folder string for the base CSV save folder.
