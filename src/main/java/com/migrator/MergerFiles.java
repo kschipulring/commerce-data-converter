@@ -7,15 +7,18 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nullable;
  
 public class MergerFiles {
- 
+
+     // just a test
 	public static void main(String[] args) throws IOException {
 
           Config.getInstance();
@@ -26,13 +29,18 @@ public class MergerFiles {
 
           M2SSystem.println( "files_source_folder = " + files_source_folder );
 
-          folderFiles2MergedFiles(files_source_folder, null, "LegacyOrder_", "LegacyOrderItem_");
+          folderFiles2MergedFiles(files_source_folder, null, true,
+          null, null, false, "LegacyOrder_", "LegacyOrderItem_");
 	}
 
      //to merge all files with the same prefix and filetype in a directory
      public static void folderFiles2MergedFiles(
           String files_source_folder,
           @Nullable String save_subdir,
+          Boolean should_zip,
+          @Nullable Map<String, FileContentsProcessedFuncInterface> funcMap,
+          @Nullable Map<String, String> paramsMap,
+          Boolean final_filename_is_first,
           @Nullable String... file_prefixes
      ) throws NullPointerException, IOException
      {
@@ -42,6 +50,19 @@ public class MergerFiles {
                save_subdir = "LegacyOrders";
           }else{
                save_subdir = save_subdir.trim();
+          }
+
+          FileContentsProcessedFuncInterface perFileFunc = null;
+          FileContentsProcessedFuncInterface endFilesMergedFunc = null;
+
+          if( funcMap != null ){
+               if( funcMap.containsKey("perFileFunc") ){
+                    perFileFunc = funcMap.get("perFileFunc");
+               }
+
+               if( funcMap.containsKey("endFilesMergedFunc") ){
+                    endFilesMergedFunc = funcMap.get("endFilesMergedFunc");
+               }
           }
 
           //no point in continuing without even a prefix of a filename to scan for.
@@ -82,7 +103,7 @@ public class MergerFiles {
                               //add the filename to its respective list
                               file_prefix_lists.get(file_prefix).add( listOfFiles[i].getName() );
 
-                              //shall fire only once
+                              //shall fire only once, to get the first file name for the entire batch.
                               if(first_filename == null){
                                    first_filename = listOfFiles[i].getName();
 
@@ -102,7 +123,28 @@ public class MergerFiles {
           
                //loop through the contents of all the files that meet the criteria
                for(int i = 0; i < file_prefix_lists.get(file_prefix).size(); i++ ){
-                    temp_files[i] = new File( files_source_folder + file_prefix_lists.get(file_prefix).get(i) );
+
+                    String temp_file_name = files_source_folder + file_prefix_lists.get(file_prefix).get(i);
+
+                    //get the file of the loop
+                    File temp_file = new File( temp_file_name );
+
+                    if(perFileFunc != null){
+
+                         String f_content = new String(Files.readAllBytes( Paths.get(temp_file_name) ) );
+                         
+                         //alter the contents of the original file
+                         String f_content_revised = perFileFunc.process(f_content);
+                         
+                         //create new temp file, use it instead of the original file of the loop.
+                         temp_file = File.createTempFile(file_prefix_lists.get(file_prefix).get(i), ".tmp");
+
+                         FileWriter writer = new FileWriter(temp_file);
+                         writer.write(f_content_revised);
+                         writer.close();
+                    }
+
+                    temp_files[i] = temp_file;
                }
 
                String mergedFileExtension = getFnExtension(first_filename);
@@ -111,7 +153,12 @@ public class MergerFiles {
           
                //what shall be the merged file name?
                String mergedFilePath = files_source_folder + File.separator + save_subdir;
-               mergedFilePath += File.separator + file_prefix + "." + mergedFileExtension;
+
+               if(final_filename_is_first){
+                    mergedFilePath += File.separator + first_filename;
+               }else{
+                    mergedFilePath += File.separator + file_prefix + "." + mergedFileExtension;
+               }
 
                srcFiles.add(mergedFilePath);
           
@@ -122,14 +169,40 @@ public class MergerFiles {
                }
            
                mergeFiles(temp_files, mergedFile);
+
+               if(endFilesMergedFunc != null){
+
+                    //get the contents from the merged file
+                    String mf_content = new String(Files.readAllBytes( Paths.get(mergedFilePath) ) );
+
+                    String fn_param = first_filename;
+
+                    if (
+                         paramsMap != null && 
+                         paramsMap.containsKey("endFilesMergedFunc") && 
+                         paramsMap.get("endFilesMergedFunc") != null)
+                    {
+                         fn_param = paramsMap.get("endFilesMergedFunc");
+                    }
+                    
+                    //alter the contents of the original file
+                    String mf_content_revised = endFilesMergedFunc.process(mf_content, fn_param);
+
+                    FileWriter writer = new FileWriter(mergedFile);
+                    writer.write(mf_content_revised);
+                    writer.close();
+               }
           }
 
-          //final zip file name
-          String dest_zipfile_name = files_source_folder + File.separator + removeFnExtension(first_filename) + ".zip";
+          //if the merged file should be sent to a zip file
+          if(should_zip){
+               //final zip file name
+               String dest_zipfile_name = files_source_folder + File.separator;
+               dest_zipfile_name += removeFnExtension(first_filename) + ".zip";
 
-          //zip the merged files
-          FilesZipper.zipFilesUp(srcFiles, dest_zipfile_name);
-
+               //zip the merged files
+               FilesZipper.zipFilesUp(srcFiles, dest_zipfile_name);
+          }
      }
  
 	public static void mergeFiles(File[] files, File mergedFile) {
@@ -169,7 +242,6 @@ public class MergerFiles {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
- 
 	}
 
      public static String getFnExtension(String fileName) {

@@ -12,6 +12,7 @@ import org.json.JSONArray;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Command Line entry point
@@ -123,12 +124,14 @@ public class App
     public static void saveSFOrders(List<JSONArray> mage_orders_list) throws IOException
     {
 
+        String first_order_created_at = "";
+
         //going through the List of order groups
         for(int i = 0; i < mage_orders_list.size(); i++){
             JSONArray mage_orders = mage_orders_list.get(i);
 
             //get the first order timestamp. Shall be used in part of the file name.
-            String start_ts = mage_orders.getJSONObject(0).getString("created_at");
+            String start_ts = mage_orders.optJSONObject(0).optString("created_at");
 
             JSONObject mage_order_obj = new JSONObject();
             
@@ -140,7 +143,49 @@ public class App
 
             //save the XML to a file
             mage2SFOrders.prepareSFXMLFile(start_ts, sf_data);
+
+            if(i == 0){
+                first_order_created_at = mage2SFOrders.first_order_created_at;
+            }
         }
+
+        //which folder has all the new .xml files in it?
+        String files_source_folder = Config.xml_save_dir + "orders" + File.separator;
+
+        Map<String, FileContentsProcessedFuncInterface> funcMap = new HashMap<String, FileContentsProcessedFuncInterface>();
+
+        Map<String, String> paramsMap = new HashMap<String, String>();
+
+        //we want to remove all the parent '<orders>' tags from the source xml files before merging them together
+        FileContentsProcessedFuncInterface perFileFunc = new FileContentsProcessedFuncInterface() {
+            @Override
+            public String process(String... file_contents) {
+                return file_contents[0].replaceAll("(?i)(<\\/?orders([^>]+)?>)", "");
+            }
+        };
+
+        funcMap.put("perFileFunc", perFileFunc);
+
+
+        //we want to remove all the parent '<orders>' tags from the source xml files before merging them together
+        FileContentsProcessedFuncInterface endFilesMergedFunc = new FileContentsProcessedFuncInterface() {      
+            @Override
+            public String process(String... params) {
+                String out_str = "<orders xmlns=\"https://www.demandware.com/xml/impex/order/" + params[1] + "\">";
+                out_str += params[0] + "</orders>";
+
+                return out_str;
+            }
+        };
+
+        funcMap.put("endFilesMergedFunc", endFilesMergedFunc);
+
+        //extra params for above closure
+        paramsMap.put("endFilesMergedFunc", first_order_created_at);
+
+        //combine those XML files from this session into master for orders and also order items
+        MergerFiles.folderFiles2MergedFiles(files_source_folder, "finals",
+        false, funcMap, paramsMap, true, "Orders_" + Config.company_name.replace(" ", "-") + "-US_");
     }
 
     public static void saveDeckOrders(List<JSONArray> mage_orders_list) throws IOException, ParseException 
@@ -157,10 +202,12 @@ public class App
             m2d.saveDeckFileFromMageJSONOrders(mage_orders);
         }
 
+        //which folder has all the new .csv files in it?
         String files_source_folder = Config.csv_save_dir + "orders" + File.separator;
 
         //combine those CSV files from this session into master for orders and also order items
-        MergerFiles.folderFiles2MergedFiles(files_source_folder, "finals", "LegacyOrder_", "LegacyOrderItem_");
+        MergerFiles.folderFiles2MergedFiles(files_source_folder, "finals",
+        true, null, null, false, "LegacyOrder_", "LegacyOrderItem_");
     }
 
     /*
