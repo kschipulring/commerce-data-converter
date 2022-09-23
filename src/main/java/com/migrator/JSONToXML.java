@@ -51,16 +51,16 @@ public class JSONToXML {
         //test output
         saveXMLFile(xml_filename, obj);
 
-        System.out.println( "contents saved to: " + xml_filename );
+        M2SSystem.println( "contents saved to: " + xml_filename );
     }
 
     public void prepareSFXMLFile(String timestamp, JSONObject jsonObject) throws IOException{
 
         //which folder for the XML file?
-        String[] xml_folder_arr = { Config.xml_save_subdir, this.section };
+        String[] xml_folder_arr = { Config.xml_save_dir, this.section };
         String xml_folder = String.join(File.separator, xml_folder_arr) + File.separator;
 
-        System.out.println("xml_folder = "+ xml_folder);
+        M2SSystem.println("xml_folder = "+ xml_folder);
 
         String section_capped = this.section.substring(0,1).toUpperCase();
         section_capped += section.substring(1).toLowerCase();
@@ -72,7 +72,7 @@ public class JSONToXML {
 
         xml_filename += ".xml";
 
-        System.out.println( "xml_filename = " + xml_filename );
+        M2SSystem.println( "xml_filename = " + xml_filename );
 
         //Orders_site-id_yyyy-MM-dd_HH-mm-ss.xml
         saveXMLFile( xml_filename, jsonObject );
@@ -93,8 +93,8 @@ public class JSONToXML {
 
         //System.out.println(xml_data_updated);
 
-        System.out.println( "xml_filename = " + xml_filename );
+        M2SSystem.println( "xml_filename = " + xml_filename );
 
-        WriteToFile.write(xml_filename, xml_data_updated);
+        WriteToFile.write(xml_filename, xml_data_updated, true);
     }
 }
