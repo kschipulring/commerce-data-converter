@@ -153,7 +153,7 @@ public class Mage2SFOrders extends JSONToXML {
     }
 
     //populates order -> 'product-lineitems' tag
-    public static JSONObject getSFProductLineItems( JSONArray mage_order_product_items ){
+    public static JSONObject getSFProductLineItems( JSONArray mage_order_product_items, String shipment_id ){
 
         JSONArray sf_order_cart_items = new JSONArray();
 
@@ -202,6 +202,8 @@ public class Mage2SFOrders extends JSONToXML {
             }
 
             sf_order_cart_item_sorter.put( "tax-rate", temp_tax_rate );
+
+            sf_order_cart_item_sorter.put( "shipment-id", shipment_id );
 
             sf_order_cart_item.put("sorter", sf_order_cart_item_sorter);
 
@@ -607,7 +609,12 @@ public class Mage2SFOrders extends JSONToXML {
             /* ORDER -> PRODUCT LINE ITEMS SUB-SECTION */
             JSONArray mage_order_product_items = mage_order.getJSONArray("items");
 
-            JSONObject sf_order_productLineItems = getSFProductLineItems( mage_order_product_items );
+            //getting the shipment-id
+            JSONObject mage_shipments = getShipments(mage_order);
+
+            String shipment_id = mage_shipments.getString( "shipment-id" );
+
+            JSONObject sf_order_productLineItems = getSFProductLineItems( mage_order_product_items, shipment_id );
 
             sorter.put( "product-lineitems", sf_order_productLineItems );
             /* END ORDER -> PRODUCT LINE ITEMS SUB-SECTION */
@@ -623,10 +630,6 @@ public class Mage2SFOrders extends JSONToXML {
 
             sorter.put( "shipping-lineitems", sf_order_shippingLineItems );
             /* END ORDER -> SHIPPING LINE ITEMS SUB-SECTION */
-
-            JSONObject mage_shipments = getShipments(mage_order);
-
-            String shipment_id = mage_shipments.getString( "shipment-id" );
 
             //now remove the shipment-id property as it is no longer needed or wanted for the overall xml
             mage_shipments.remove("shipment-id");
