@@ -171,7 +171,11 @@ public class App
         FileContentsProcessedFuncInterface endFilesMergedFunc = new FileContentsProcessedFuncInterface() {      
             @Override
             public String process(String... params) {
-                String out_str = "<orders xmlns=\"https://www.demandware.com/xml/impex/order/" + params[1] + "\">";
+                String out_str = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+
+                String[] parts = params[1].split("_");
+
+                out_str += "<orders xmlns=\"https://www.demandware.com/xml/impex/order/" + parts[1] + "\">";
                 out_str += params[0] + "</orders>";
 
                 return out_str;
