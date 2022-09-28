@@ -579,6 +579,10 @@ public class Mage2SFOrders extends JSONToXML {
         return payments;
     }
 
+    public static String getOrdersXMLNS(){
+        return "https://www.demandware.com/xml/impex/order/2006-10-31";
+    }
+
     /*
     The Magento data has a different schema than Salesforce, even in spite of 
     differing formats.  So it must first be converted to SF.
@@ -704,7 +708,7 @@ public class Mage2SFOrders extends JSONToXML {
         this.first_order_created_at = first_order_created_at;
 
         //for the orders main tag
-        String order_xmlns = "https://www.demandware.com/xml/impex/order/" + first_order_created_at;
+        String order_xmlns = getOrdersXMLNS();
         sfData.put("orders xmlns=\""+ order_xmlns +"\"", sfData_orders);
 
         return sfData;
