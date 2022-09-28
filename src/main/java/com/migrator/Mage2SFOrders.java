@@ -537,7 +537,51 @@ public class Mage2SFOrders extends JSONToXML {
             JSONObject sf_order_status = new JSONObject();
             JSONObjectArray sf_order_status_sorter = new JSONObjectArray();
 
-            sf_order_status_sorter.put( "order-status", mage_order.opt("status") );
+            String mage_order_status = mage_order.optString("status");
+
+            String sf_order_status_string = "";
+
+            switch (mage_order_status) {
+                case "complete":
+                    sf_order_status_string = "COMPLETED";
+                break;
+                case "sent_to_fulfillment":
+                    sf_order_status_string = "OPEN";
+                break;
+                case "pending_payment":
+                    sf_order_status_string = "OPEN";
+                break;
+                case "dm_refund_review":
+                    sf_order_status_string = "OPEN";
+                break;
+                case "holded":
+                    sf_order_status_string = "OPEN";
+                break;
+                case "isppicked":
+                    sf_order_status_string = "OPEN";
+                break;
+                case "cancelled":
+                    sf_order_status_string = "CANCELLED";
+                break;
+                case "fraud":
+                    sf_order_status_string = "CANCELLED";
+                break;
+                case "closed":
+                    sf_order_status_string = "REPLACED";
+                break;
+                case "pending":
+                    sf_order_status_string = "NEW";
+                break;
+                case "pending_paypal":
+                    sf_order_status_string = "NEW";
+                break;
+                default:
+                    sf_order_status_string = "FAILED";
+                break;
+            }
+
+
+            sf_order_status_sorter.put( "order-status", sf_order_status_string );
 
 
             String[] complete_arr = { "complete", "pending", "sent_to_fulfillment" };
