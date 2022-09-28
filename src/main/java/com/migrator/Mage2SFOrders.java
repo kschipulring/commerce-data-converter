@@ -588,10 +588,10 @@ public class Mage2SFOrders extends JSONToXML {
 
             Object cs_val = null;
 
-            if( Arrays.asList(complete_arr).contains( mage_order.optString("status") ) ){ 
+            if( Arrays.asList(complete_arr).contains( mage_order_status ) ){ 
                 cs_val = "CONFIRMED";
             }else{
-                cs_val = mage_order.optString("status");
+                cs_val = mage_order_status;
             }
 
             sf_order_status_sorter.put("confirmation-status", cs_val )
