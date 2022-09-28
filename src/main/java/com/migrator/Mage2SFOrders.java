@@ -390,7 +390,7 @@ public class Mage2SFOrders extends JSONToXML {
                              .getJSONObject(0);
 
         sos_sorter.put("shipping-address", getShippingAddress(mage_shipping_assignment) )
-                    .put("totals", getTotals(mage_order) );
+                    .put("totals", getTotals(mage_order, false) );
 
           
         sf_order_shipments.put("sorter", sos_sorter).put("shipment-id", shipment_id);
@@ -422,7 +422,7 @@ public class Mage2SFOrders extends JSONToXML {
         return sf_shipping_address;
     }
 
-    public static JSONObject getTotals(JSONObject mage_order){
+    public static JSONObject getTotals(JSONObject mage_order, Boolean include_order_total){
 
         JSONObjectArray sf_order_totals_sorter = new JSONObjectArray();
         JSONObject sf_order_totals = new JSONObject();
@@ -457,8 +457,11 @@ public class Mage2SFOrders extends JSONToXML {
         orderTotal.put("sorter", orderTotal_sorter);
 
         sf_order_totals_sorter.put( "merchandize-total", merchandizeTotal)
-                        .put( "shipping-total", shippingTotal)
-                        .put( "order-total", orderTotal);
+                        .put( "shipping-total", shippingTotal);
+
+        if(include_order_total){
+            sf_order_totals_sorter.put( "order-total", orderTotal);
+        }           
 
         sf_order_totals.put("sorter", sf_order_totals_sorter);
 
@@ -633,7 +636,7 @@ public class Mage2SFOrders extends JSONToXML {
 
             String sf_order_status_string = getMage2SFOrerStatus(mage_order_status);
             sf_order_status_sorter.put( "order-status", sf_order_status_string );
-            
+
 
             String[] complete_arr = { "complete", "pending", "sent_to_fulfillment" };
 
@@ -688,7 +691,7 @@ public class Mage2SFOrders extends JSONToXML {
 
             JSONObject sf_shipments = new JSONObject().put(shipment_keyval, mage_shipments);
             sorter.put( "shipments", sf_shipments )
-                    .put( "totals", getTotals(mage_order) )
+                    .put( "totals", getTotals(mage_order, true) )
                     .put( "payments", getPayments(mage_order) );
 
 
