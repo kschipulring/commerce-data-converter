@@ -191,7 +191,7 @@ public class Mage2SFOrders extends JSONToXML {
                       .put( "position", j+1 )
                       .put( "product-id", mage_order_product_item.get("product_id") )
                       .put( "product-name", mage_order_product_item.get("name") )
-                      .put( "quantity", mage_order_product_item.get("qty_ordered") );
+                      .put( "quantity unit=\"\"", mage_order_product_item.get("qty_ordered") );
 
             double temp_tax_rate = mage_order_product_item.getDouble("base_tax_amount") /
                                    mage_order_product_item.getDouble("base_price");
