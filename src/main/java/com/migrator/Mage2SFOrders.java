@@ -269,13 +269,103 @@ public class Mage2SFOrders extends JSONToXML {
         return sf_order_shippingLineItems;
     }
 
+    public static String getMage2SFOrerStatus(String mage_order_status){
+        String sf_shipping_status = "";
+
+        switch (mage_order_status) {
+            case "complete":
+                sf_shipping_status = "COMPLETED";
+            break;
+            case "sent_to_fulfillment":
+                sf_shipping_status = "OPEN";
+            break;
+            case "pending_payment":
+                sf_shipping_status = "OPEN";
+            break;
+            case "dm_refund_review":
+                sf_shipping_status = "OPEN";
+            break;
+            case "holded":
+                sf_shipping_status = "OPEN";
+            break;
+            case "isppicked":
+                sf_shipping_status = "OPEN";
+            break;
+            case "cancelled":
+                sf_shipping_status = "CANCELLED";
+            break;
+            case "fraud":
+                sf_shipping_status = "CANCELLED";
+            break;
+            case "closed":
+                sf_shipping_status = "REPLACED";
+            break;
+            case "pending":
+                sf_shipping_status = "NEW";
+            break;
+            case "pending_paypal":
+                sf_shipping_status = "NEW";
+            break;
+            default:
+                sf_shipping_status = "FAILED";
+            break;
+        }
+
+        return sf_shipping_status;
+    }
+
+    public static String getMage2SFShippingStatus(String mage_order_status){
+        String sf_shipping_status = "";
+
+        switch (mage_order_status) {
+            case "complete":
+                sf_shipping_status = "SHIPPED";
+            break;
+            case "sent_to_fulfillment":
+                sf_shipping_status = "NOT_SHIPPED";
+            break;
+            case "pending_payment":
+                sf_shipping_status = "NOT_SHIPPED";
+            break;
+            case "dm_refund_review":
+                sf_shipping_status = "NOT_SHIPPED";
+            break;
+            case "holded":
+                sf_shipping_status = "NOT_SHIPPED";
+            break;
+            case "isppicked":
+                sf_shipping_status = "NOT_SHIPPED";
+            break;
+            case "cancelled":
+                sf_shipping_status = "NOT_SHIPPED";
+            break;
+            case "fraud":
+                sf_shipping_status = "NOT_SHIPPED";
+            break;
+            case "closed":
+                sf_shipping_status = "SHIPPED";
+            break;
+            case "pending":
+                sf_shipping_status = "NOT_SHIPPED";
+            break;
+            case "pending_paypal":
+                sf_shipping_status = "NOT_SHIPPED";
+            break;
+            default:
+                sf_shipping_status = "NOT_SHIPPED";
+            break;
+        }
+
+        return sf_shipping_status;
+    }
+
     public static JSONObject getShipments(JSONObject mage_order){
 
         JSONObject sf_order_shipments = new JSONObject();
 
         JSONObjectArray sos_sorter = new JSONObjectArray();
 
-        String order_status = mage_order.optString("status");
+        String order_status = getMage2SFShippingStatus( mage_order.optString("status") );
         String shipping_status_str = "{'shipping-status':'" + order_status + "'}}";
 
         JSONObject shipping_status = new JSONObject(shipping_status_str);
@@ -541,50 +631,9 @@ public class Mage2SFOrders extends JSONToXML {
 
             String mage_order_status = mage_order.optString("status");
 
-            String sf_order_status_string = "";
-
-            switch (mage_order_status) {
-                case "complete":
-                    sf_order_status_string = "COMPLETED";
-                break;
-                case "sent_to_fulfillment":
-                    sf_order_status_string = "OPEN";
-                break;
-                case "pending_payment":
-                    sf_order_status_string = "OPEN";
-                break;
-                case "dm_refund_review":
-                    sf_order_status_string = "OPEN";
-                break;
-                case "holded":
-                    sf_order_status_string = "OPEN";
-                break;
-                case "isppicked":
-                    sf_order_status_string = "OPEN";
-                break;
-                case "cancelled":
-                    sf_order_status_string = "CANCELLED";
-                break;
-                case "fraud":
-                    sf_order_status_string = "CANCELLED";
-                break;
-                case "closed":
-                    sf_order_status_string = "REPLACED";
-                break;
-                case "pending":
-                    sf_order_status_string = "NEW";
-                break;
-                case "pending_paypal":
-                    sf_order_status_string = "NEW";
-                break;
-                default:
-                    sf_order_status_string = "FAILED";
-                break;
-            }
-
-
+            String sf_order_status_string = getMage2SFOrerStatus(mage_order_status);
             sf_order_status_sorter.put( "order-status", sf_order_status_string );
-
+            
 
             String[] complete_arr = { "complete", "pending", "sent_to_fulfillment" };
 
