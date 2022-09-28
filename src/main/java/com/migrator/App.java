@@ -175,7 +175,7 @@ public class App
 
                 String[] parts = params[1].split("_");
 
-                out_str += "<orders xmlns=\"https://www.demandware.com/xml/impex/order/" + parts[1] + "\">";
+                out_str += "<orders xmlns=\"https://www.demandware.com/xml/impex/order/" + parts[0] + "\">";
                 out_str += params[0] + "</orders>";
 
                 return out_str;
