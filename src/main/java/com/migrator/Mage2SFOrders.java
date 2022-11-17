@@ -118,7 +118,7 @@ public class Mage2SFOrders extends JSONToXML {
         String customer_first_name = customer_name_obj.getString("firstname");
         String customer_last_name = customer_name_obj.getString("lastname");
         
-        String customer_name = customer_first_name + " " + customer_last_name;
+        String customer_name = XML.escape(customer_first_name + " " + customer_last_name);
 
         soc_sorter.put( "customer-name", customer_name )
                 .put( "customer-email", mage_order.get("customer_email") );
@@ -182,15 +182,17 @@ public class Mage2SFOrders extends JSONToXML {
 
             JSONObjectArray sf_order_cart_item_sorter = new JSONObjectArray();
 
+            String product_name = XML.escape( mage_order_product_item.getString("name") );
+
             sf_order_cart_item_sorter.put( "net-price", mage_order_product_item.get("base_price") )
                       .put( "tax", mage_order_product_item.get("tax_amount") )
                       .put( "gross-price", mage_order_product_item.get("base_price_incl_tax") )
                       .put( "base-price", mage_order_product_item.get("base_price") )
-                      .put( "lineitem-text", mage_order_product_item.get("name") )
+                      .put( "lineitem-text", product_name )
                       .put( "tax-basis", mage_order_product_item.get("base_price") )
                       .put( "position", j+1 )
                       .put( "product-id", mage_order_product_item.get("product_id") )
-                      .put( "product-name", mage_order_product_item.get("name") )
+                      .put( "product-name", product_name )
                       .put( "quantity unit=\"\"", mage_order_product_item.get("qty_ordered") );
 
             double temp_tax_rate = mage_order_product_item.getDouble("base_tax_amount") /
@@ -408,10 +410,10 @@ public class Mage2SFOrders extends JSONToXML {
                                             .getJSONObject("shipping")
                                             .getJSONObject("address");
 
-        ssa_sorter.put("first-name", mage_shipping_address.get("firstname"))
-                  .put("last-name", mage_shipping_address.get("lastname"))
+        ssa_sorter.put("first-name", XML.escape(mage_shipping_address.getString("firstname")) )
+                  .put("last-name", XML.escape(mage_shipping_address.getString("lastname")) )
                   .put("address1", mage_shipping_address.getJSONArray("street").get(0) )
-                  .put("city", mage_shipping_address.get("city"))
+                  .put("city", XML.escape(mage_shipping_address.getString("city")) )
                   .put("postal-code", mage_shipping_address.get("postcode"))
                   .put("state-code", mage_shipping_address.get("region_code"))
                   .put("country-code", mage_shipping_address.get("country_id"))
@@ -580,7 +582,7 @@ public class Mage2SFOrders extends JSONToXML {
     }
 
     public static String getOrdersXMLNS(){
-        return "https://www.demandware.com/xml/impex/order/2006-10-31";
+        return "http://www.demandware.com/xml/impex/order/2006-10-31";
     }
 
     /*
@@ -641,18 +643,29 @@ public class Mage2SFOrders extends JSONToXML {
             String sf_order_status_string = getMage2SFOrerStatus(mage_order_status);
             sf_order_status_sorter.put( "order-status", sf_order_status_string );
 
+            //do not want failed or fraudulent orders
+            if( sf_order_status_string == "FAILED" || mage_order_status == "fraud" ){
+                continue;
+            }
 
-            String[] complete_arr = { "complete", "pending", "sent_to_fulfillment" };
 
-            Object cs_val = null;
+            String[] complete_arr = { "complete", "pending", "sent_to_fulfillment", "closed" };
+
+            Object cs_val = "NOT_CONFIRMED";
 
             if( Arrays.asList(complete_arr).contains( mage_order_status ) ){ 
                 cs_val = "CONFIRMED";
-            }else{
-                cs_val = mage_order_status;
+            }
+
+            //have the items been paid for?
+            String ps_val = "NOT_PAID";
+
+            if( mage_order_status.equalsIgnoreCase("complete") ){
+                ps_val = "PAID";
             }
 
             sf_order_status_sorter.put("confirmation-status", cs_val )
+                                .put("payment-status", ps_val )
                                 .put( "export-status", "EXPORTED" );
 
             sf_order_status.put( "sorter", sf_order_status_sorter );
