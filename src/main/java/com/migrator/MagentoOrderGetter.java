@@ -39,6 +39,11 @@ public class MagentoOrderGetter extends MagentoDataGetter{
         endpoint_extras += "&searchCriteria[filter_groups][2][filters][0][value]=null";
         endpoint_extras += "&searchCriteria[filter_groups][2][filters][0][condition_type]=neq";
 
+        //must not be fraudulent or failed
+        endpoint_extras += "&searchCriteria[filter_groups][3][filters][0][field]=status";
+        endpoint_extras += "&searchCriteria[filter_groups][3][filters][0][value]=fraud,fail,failed";
+        endpoint_extras += "&searchCriteria[filter_groups][3][filters][0][condition_type]=nin";
+
         //assuming that these are populated from the command line or perhaps elsewhere. By default, they are not.
         String date_from = this.date_from;
         String date_to = this.date_to;
